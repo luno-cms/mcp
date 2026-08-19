@@ -1,0 +1,64 @@
+{
+  "name": "@luno-cms/mcp",
+  "version": "0.2.21",
+  "type": "module",
+  "description": "MCP server for LUNO, the AI-era Backend Platform. Lets Claude Code, Cursor, and Codex operate a Headless CMS, forms, auth, and storage backend via natural language — schema, content, and publish, no server to build.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "ai-agent",
+    "backend-platform",
+    "headless-cms",
+    "cms",
+    "claude-code",
+    "cursor",
+    "codex",
+    "forms",
+    "authentication",
+    "cloudflare-workers",
+    "ai-era-backend-platform"
+  ],
+  "homepage": "https://luno.rest",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/luno-cms/mcp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luno-cms/mcp.git"
+  },
+  "mcpName": "io.github.luno-cms/mcp",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "luno-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "public-audit": "node scripts/public-audit.mjs",
+    "golden-path-smoke": "pnpm run build && node dist/golden-path-smoke.js",
+    "prepublishOnly": "pnpm run public-audit && pnpm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "shell-quote": "^1.10.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/shell-quote": "^1.7.5",
+    "typescript": "~5.7.3",
+    "vitest": "^3.0.5"
+  },
+  "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531"
+}

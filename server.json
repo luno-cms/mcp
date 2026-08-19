@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.luno-cms/mcp",
+  "description": "LUNO MCP: AI-era Backend Platform. Claude Code/Cursor/Codex operate CMS, forms, auth, storage.",
+  "repository": {
+    "url": "https://github.com/luno-cms/mcp",
+    "source": "github"
+  },
+  "version": "0.2.21",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@luno-cms/mcp",
+      "version": "0.2.21",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "LUNO admin API base URL, e.g. https://api.luno.rest/admin",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": false,
+          "name": "LUNO_API_URL"
+        },
+        {
+          "description": "LUNO agent API key (sk-agent-…), issued in Console under Settings → Agent API Keys",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true,
+          "name": "LUNO_AGENT_KEY"
+        }
+      ]
+    }
+  ]
+}
