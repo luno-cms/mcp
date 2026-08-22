@@ -21,6 +21,11 @@ import {
 import { tryFormatMcpInvalidArgumentsMessage } from "./agent-errors.js";
 import { contactFormFieldsArraySchema } from "./contact-form-fields.js";
 import { registerMcpResources } from "./mcp-resources.js";
+import { snapshotSchema } from "./snapshot-schema.js";
+import { formBlueprintSchema } from "./form-blueprint-schema.js";
+import { masterBlueprintEntitiesSchema } from "./master-blueprint-schema.js";
+import { uploadMediaInputSchema } from "./upload-media-schema.js";
+import { applyBuiltinFormTemplateSchema } from "./apply-builtin-template-schema.js";
 
 function textResult(data: unknown) {
   return {
@@ -44,7 +49,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.24" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.25" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -245,23 +250,8 @@ export async function startLunoMcp(): Promise<void> {
     "upload_media",
     {
       description:
-        "メディアライブラリへ画像/ファイルをアップロード（POST /v1/media）。必須（いずれか一方）: sourceUrl / base64 / filePath（ローカルパス推奨）。任意: filename, mimeType, folderId。返却 id（UUID）を image / image_gallery に入れる。外部 URL を snapshot に直書きしない。stg/prod へローカル画像を上げるときは filePath（sourceUrl の 127.0.0.1 は届かない）。",
-      inputSchema: {
-        sourceUrl: z
-          .string()
-          .url()
-          .optional()
-          .describe("LUNO サーバーが取得する http(s) URL"),
-        base64: z.string().min(1).optional().describe("ファイルの base64"),
-        filePath: z
-          .string()
-          .min(1)
-          .optional()
-          .describe("MCP ホスト上のローカルパス（stg/prod 推奨）"),
-        filename: z.string().min(1).max(200).optional().describe("アップロードファイル名"),
-        mimeType: z.string().min(1).max(200).optional().describe("MIME type"),
-        folderId: z.string().uuid().optional().describe("メディアフォルダ UUID"),
-      },
+        "メディアライブラリへ画像/ファイルをアップロード（POST /v1/media）。必須（いずれか一方）: sourceUrl / base64 / filePath（ローカルパス推奨）。任意: filename, mimeType, folderId。返却 id（UUID）を image / image_gallery に入れる（luno://content/schema-guide）。外部 URL を snapshot に直書きしない。stg/prod へローカル画像を上げるときは filePath（sourceUrl の 127.0.0.1 は届かない）。",
+      inputSchema: uploadMediaInputSchema,
     },
     async ({ sourceUrl, base64, filePath, filename, mimeType, folderId }) => {
       const { blob, filename: name } = await prepareUploadBlob({
@@ -297,13 +287,11 @@ export async function startLunoMcp(): Promise<void> {
     "save_revision",
     {
       description:
-        "エントリ本文を新しい下書きリビジョンとして保存。必須: formSetId, entryId, snapshot。snapshot は { [formKey]: { [fieldKey]: value } }（フォームキー配下にネスト）。フラットな field_key トップレベルは 400。任意: idempotencyKey。返却の id → publish_revision の revisionRowId、revision → publish_revision の revision。形は先に get_form_set_schema。",
+        "エントリ本文を新しい下書きリビジョンとして保存。必須: formSetId, entryId, snapshot。snapshot は { [formKey]: { [fieldKey]: value } }（フォームキー配下にネスト）。フラットな field_key トップレベルは 400。任意: idempotencyKey。返却の id → publish_revision の revisionRowId、revision → publish_revision の revision。形は get_form_set_schema または luno://content/schema-guide。",
       inputSchema: {
         formSetId: formSetIdSchema,
         entryId: entryIdSchema,
-        snapshot: z
-          .record(z.string(), z.unknown())
-          .describe("ネストした snapshot オブジェクト"),
+        snapshot: snapshotSchema,
         idempotencyKey: z
           .string()
           .max(200)
@@ -319,9 +307,9 @@ export async function startLunoMcp(): Promise<void> {
     "apply_form_blueprint",
     {
       description:
-        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。構造は search_admin_help「Form Blueprint」または agent.form-blueprint-mcp。これは Form Set 用（fieldKey）。Contact Form の fields 形ではない（agent.contact-form-mcp）。先に dryRun: true 推奨。誤った Form Set は archive_form_set（soft-delete）。Contact Form 削除は不可（agent.undo-recovery）。",
+        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。先に dryRun: true 推奨。詳細: agent.form-blueprint-mcp, luno://content/schema-guide。誤った Form Set は archive_form_set（soft-delete）。",
       inputSchema: {
-        blueprint: z.record(z.string(), z.unknown()).describe("Form Blueprint JSON"),
+        blueprint: formBlueprintSchema,
         dryRun: z.boolean().optional().describe("true で適用せずプレビュー"),
         idempotencyKey: z.string().optional().describe("冪等キー（異なる引数での再送は409 IDEMPOTENCY_KEY_CONFLICT。24時間で失効）"),
       },
@@ -382,40 +370,8 @@ export async function startLunoMcp(): Promise<void> {
     "apply_builtin_form_template",
     {
       description:
-        "Builtin フォームテンプレから新規 Form Set を作成（schema/full）。必須: slug（新規 Form Set の slug）, name（新規 Form Set の表示名）。テンプレ指定は templateSlug（list_builtin_form_templates の slug・推奨）または templateId（DB テンプレ UUID）のどちらか必須。任意: description, dryRun, idempotencyKey。返却 id を formSetId に使う。",
-      inputSchema: {
-        templateSlug: z
-          .string()
-          .min(1)
-          .max(200)
-          .optional()
-          .describe("list_builtin_form_templates の slug（推奨）"),
-        templateId: z
-          .string()
-          .uuid()
-          .optional()
-          .describe("DB 保存テンプレートの UUID（互換）"),
-        slug: z
-          .string({ error: "Required: slug (new Form Set URL slug, string)" })
-          .min(1)
-          .max(200)
-          .describe("新規作成する Form Set の slug（テンプレ slug とは別）"),
-        name: z
-          .string({ error: "Required: name (new Form Set display name, string)" })
-          .min(1)
-          .max(200)
-          .describe("新規作成する Form Set の表示名"),
-        description: z
-          .union([z.string(), z.null()])
-          .optional()
-          .describe("Form Set 説明（任意）"),
-        dryRun: z.boolean().optional().describe("true で適用せずプレビュー"),
-        idempotencyKey: z
-          .string()
-          .max(200)
-          .optional()
-          .describe("冪等キー（同一キー+同一引数の再送は同じ結果を返す。異なる引数での再送は409 IDEMPOTENCY_KEY_CONFLICT。24時間で失効）"),
-      },
+        "Builtin フォームテンプレから新規 Form Set を作成（schema/full）。必須: slug, name。テンプレ指定は templateSlug（list_builtin_form_templates の slug・推奨）または templateId（DB テンプレ UUID）のどちらか必須。任意: description, dryRun, idempotencyKey。返却 id を formSetId に使う。詳細: agent.builtin-form-templates。",
+      inputSchema: applyBuiltinFormTemplateSchema,
     },
     async ({
       templateSlug,
@@ -429,14 +385,7 @@ export async function startLunoMcp(): Promise<void> {
       const path =
         typeof templateSlug === "string" && templateSlug.trim().length > 0
           ? `/v1/form-set-templates/builtin/${encodeURIComponent(templateSlug.trim())}/apply`
-          : templateId
-            ? `/v1/form-set-templates/${templateId}/apply`
-            : null;
-      if (!path) {
-        throw new Error(
-          "Provide templateSlug (from list_builtin_form_templates) or templateId (DB template UUID)"
-        );
-      }
+          : `/v1/form-set-templates/${templateId}/apply`;
       return textResult(
         await lunoJson(path, {
           method: "POST",
@@ -456,12 +405,9 @@ export async function startLunoMcp(): Promise<void> {
     "validate_master_blueprint",
     {
       description:
-        "Master Blueprint を検証（schema/full）。必須: entities（1 件以上の配列）。適用はしない。",
+        "Master Blueprint を検証（schema/full）。必須: entities（1 件以上の配列）。各 entity: key, name, records[{ value, label, sort_order }]。適用はしない。詳細: agent.master-blueprint-mcp, luno://content/schema-guide。",
       inputSchema: {
-        entities: z
-          .array(z.record(z.string(), z.unknown()))
-          .min(1)
-          .describe("Master Blueprint entities 配列"),
+        entities: masterBlueprintEntitiesSchema,
       },
     },
     async ({ entities }) =>
@@ -477,12 +423,9 @@ export async function startLunoMcp(): Promise<void> {
     "apply_master_blueprint",
     {
       description:
-        "Master Blueprint を一括 upsert（schema/full）。必須: entities。任意: dryRun, publish（true でサイトに反映し公開マスタ API に載る。省略時は未反映）。各 record の並びは sort_order / sortOrder（省略時 0）。エージェントキーでは update_master_record 不可のためここで正しい sort_order を渡す。詳細: agent.master-blueprint-mcp",
+        "Master Blueprint を一括 upsert（schema/full）。必須: entities。任意: dryRun, publish（true でサイトに反映し公開マスタ API に載る。省略時は未反映）。各 record の並びは sort_order / sortOrder。エージェントキーでは update_master_record 不可のためここで正しい sort_order を渡す。詳細: agent.master-blueprint-mcp, luno://content/schema-guide",
       inputSchema: {
-        entities: z
-          .array(z.record(z.string(), z.unknown()))
-          .min(1)
-          .describe("Master Blueprint entities 配列"),
+        entities: masterBlueprintEntitiesSchema,
         dryRun: z.boolean().optional().describe("true で件数プレビューのみ"),
         publish: z
           .boolean()
@@ -1031,7 +974,7 @@ export async function startLunoMcp(): Promise<void> {
 
   // stdio MCP: logs must go to stderr so they don't corrupt the protocol
   console.error(
-    `[luno-mcp] ready version=0.2.24 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈44 incl. get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
+    `[luno-mcp] ready version=0.2.25 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈44 incl. get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
   );
 
   const transport = new StdioServerTransport();
