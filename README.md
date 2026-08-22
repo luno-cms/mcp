@@ -1,10 +1,41 @@
 # LUNO — AI Backend Platform
 
-npm package: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) (unchanged).
+**Build, operate, and govern production backends with AI agents.**
 
-MCP server for **LUNO — AI Backend Platform**. Claude Code, Cursor, and Codex operate content, forms, auth, and storage via natural language — schema, content, and publish. No backend to build. LUNO does **not** generate frontend code; CMS and forms are capabilities, not the product category. Not the unrelated cryptocurrency “Luno” exchange MCP.
+LUNO is a hosted backend platform — not a website builder, not an open-source CMS, and not an MCP server product. MCP is how your agent connects to LUNO. CMS and forms are capabilities; the product category is **AI-era Backend Platform**.
 
-- npm: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp)
+| | |
+|---|---|
+| **BUILD** | AI agents define schemas, forms, and backend structure via blueprints and templates. |
+| **OPERATE** | Agents read and change content, media, auth settings, and other backend resources. |
+| **GOVERN** | Humans control production through scoped agent keys, approval workflows, publish gates, and safety controls. |
+
+### Quick start
+
+```bash
+npx @luno-cms/mcp setup
+```
+
+Works with **Claude Code**, **Cursor**, and **Codex**. Issue an agent key in the LUNO Console → Settings → Agent API keys.
+
+> **Glama / MCP directory:** “Install Server” requires a hosted API key and may show *This server cannot be installed*. Use `npx @luno-cms/mcp setup` instead — see [Quick start (recommended)](#quick-start-recommended) below.
+
+### Production safety by design
+
+- **Scoped agent keys** — restrict to content-only or full backend access
+- **Human approval** — keys without publish permission stop at review (`pendingHumanApproval`)
+- **Destructive-action protection** — agents cannot hard-delete; archive requires confirmation
+- **Dry runs & confirmation tokens** — preview schema changes before applying
+- **Idempotent operations** — safe retries after timeouts
+- **Audit trail** — agent activity and audit logs in Console
+
+### Agent-readable by design
+
+MCP schemas and tool descriptions were redesigned for agent readability. In a blind test, the same backend task went from **142 tool calls to 11**, with **0 errors** — application behavior unchanged.
+
+---
+
+- npm: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) (not the unrelated cryptocurrency “Luno” MCP)
 - Official MCP Registry: [`io.github.luno-cms/mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.luno-cms/mcp)
 - Source: [`github.com/luno-cms/mcp`](https://github.com/luno-cms/mcp)
 - Site: [luno.rest](https://luno.rest) · Docs: [doc.luno.rest](https://doc.luno.rest)
