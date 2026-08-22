@@ -66,6 +66,18 @@ async function walk(dir, out) {
 }
 
 const pkg = JSON.parse(await readFile(path.join(ROOT, "package.json"), "utf8"));
+const serverJson = JSON.parse(await readFile(path.join(ROOT, "server.json"), "utf8"));
+if (serverJson.version !== pkg.version) {
+  throw new Error(
+    `server.json version (${serverJson.version}) must match package.json (${pkg.version}) for MCP Registry publish`
+  );
+}
+const npmPkg = serverJson.packages?.[0];
+if (npmPkg?.version !== pkg.version) {
+  throw new Error(
+    `server.json packages[0].version (${npmPkg?.version}) must match package.json (${pkg.version})`
+  );
+}
 assertNoPrivateDeps(pkg.dependencies, "dependencies");
 assertNoPrivateDeps(pkg.devDependencies, "devDependencies");
 assertNoPrivateDeps(pkg.peerDependencies, "peerDependencies");

@@ -240,7 +240,7 @@ export async function runGoldenPathSmoke(): Promise<GoldenPathSmokeResult> {
     stderr: "pipe",
   });
 
-  const client = new Client({ name: "luno-golden-path-smoke", version: "0.2.25" });
+  const client = new Client({ name: "luno-golden-path-smoke", version: "0.2.26" });
   await client.connect(transport);
 
   await assertMcpResourcesReady(client);

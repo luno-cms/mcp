@@ -49,7 +49,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.25" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.26" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -974,7 +974,7 @@ export async function startLunoMcp(): Promise<void> {
 
   // stdio MCP: logs must go to stderr so they don't corrupt the protocol
   console.error(
-    `[luno-mcp] ready version=0.2.25 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈44 incl. get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
+    `[luno-mcp] ready version=0.2.26 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈44 incl. get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
   );
 
   const transport = new StdioServerTransport();
