@@ -15,6 +15,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getLunoApiBase, getLunoAgentKey } from "./luno-api.js";
+import { REQUIRED_MCP_RESOURCE_URIS } from "./mcp-resources.js";
 
 const FUNNEL_EVENTS = [
   "agent_backend_selected",
@@ -119,6 +120,26 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/** MCP Resources (#90): list + read required URIs before tool chain. */
+export async function assertMcpResourcesReady(
+  client: Client
+): Promise<void> {
+  const listed = await client.listResources();
+  const uris = new Set((listed.resources ?? []).map((r) => r.uri));
+  for (const uri of REQUIRED_MCP_RESOURCE_URIS) {
+    if (!uris.has(uri)) {
+      throw new Error(`MCP resources/list missing required URI: ${uri}`);
+    }
+  }
+  const read = await client.readResource({ uri: REQUIRED_MCP_RESOURCE_URIS[0] });
+  const textEntry = read.contents?.find(
+    (c): c is { uri: string; text: string; mimeType?: string } => "text" in c && typeof c.text === "string"
+  );
+  if (!textEntry || textEntry.text.length < 100) {
+    throw new Error("MCP resources/read field-types returned empty body");
+  }
+}
+
 type FunnelItem = {
   event_name?: string;
   properties?: Record<string, unknown>;
@@ -219,8 +240,10 @@ export async function runGoldenPathSmoke(): Promise<GoldenPathSmokeResult> {
     stderr: "pipe",
   });
 
-  const client = new Client({ name: "luno-golden-path-smoke", version: "0.2.21" });
+  const client = new Client({ name: "luno-golden-path-smoke", version: "0.2.24" });
   await client.connect(transport);
+
+  await assertMcpResourcesReady(client);
 
   let formSetId = "";
   let entryId = "";
