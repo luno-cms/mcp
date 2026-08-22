@@ -20,6 +20,7 @@ import {
 } from "./mcp-id-schemas.js";
 import { tryFormatMcpInvalidArgumentsMessage } from "./agent-errors.js";
 import { contactFormFieldsArraySchema } from "./contact-form-fields.js";
+import { registerMcpResources } from "./mcp-resources.js";
 
 function textResult(data: unknown) {
   return {
@@ -43,7 +44,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.21" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.24" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -56,6 +57,8 @@ export async function startLunoMcp(): Promise<void> {
     origCreateToolError(
       tryFormatMcpInvalidArgumentsMessage(errorMessage) ?? errorMessage
     );
+
+  registerMcpResources(mcp);
 
   mcp.registerTool(
     "get_tenant_schema",
@@ -1028,7 +1031,7 @@ export async function startLunoMcp(): Promise<void> {
 
   // stdio MCP: logs must go to stderr so they don't corrupt the protocol
   console.error(
-    `[luno-mcp] ready version=0.2.21 funnel_id=${funnelId} api=${apiBase} tools≈44 incl. get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
+    `[luno-mcp] ready version=0.2.24 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈44 incl. get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
   );
 
   const transport = new StdioServerTransport();

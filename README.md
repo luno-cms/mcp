@@ -33,6 +33,20 @@ Works with **Claude Code**, **Cursor**, and **Codex**. Issue an agent key in the
 
 MCP schemas and tool descriptions were redesigned for agent readability. In a blind test, the same backend task went from **142 tool calls to 11**, with **0 errors** — application behavior unchanged.
 
+### MCP Resources (#90)
+
+Static **Resources** (`resources/list`, `resources/read`) ship agent-readable guides without Admin API calls:
+
+| URI | Topic |
+|-----|--------|
+| `luno://forms/field-types` | Field types + snapshot shapes |
+| `luno://content/schema-guide` | Form Set / entry / revision hierarchy |
+| `luno://publishing-guide` | Draft → publish, `can_publish` |
+| `luno://permissions` | Scopes, blocked actions, archive token |
+| `luno://api-reference` | Tool cheat sheet (not full OpenAPI) |
+
+Inventory: [docs/RESOURCES.md](./docs/RESOURCES.md). Live per-tenant schema: `get_form_set_schema` tool.
+
 ---
 
 - npm: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) (not the unrelated cryptocurrency “Luno” MCP)
