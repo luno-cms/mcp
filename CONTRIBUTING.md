@@ -24,3 +24,7 @@ pnpm public-audit
 ```
 
 Please follow the [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+## MCP tool schemas (#92)
+
+New or changed tools must pass the [Schema Quality checklist](./docs/SCHEMA_QUALITY.md): typed Zod modules, `.describe()` on fields, Resource / `agent.*` cross-links, and tests for common failure shapes. CI runs `schema-quality.test.ts` with `pnpm test`.
