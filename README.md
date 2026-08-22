@@ -1,8 +1,10 @@
-# @luno-cms/mcp
+# LUNO — AI Backend Platform
 
-MCP server for **LUNO**, the **AI-era Backend Platform**. Claude Code, Cursor, and Codex operate content, forms, auth, and storage via natural language — schema, content, and publish. No backend to build. LUNO does **not** generate frontend code; CMS and forms are capabilities, not the product category.
+npm package: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) (unchanged).
 
-- npm: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) (not the unrelated cryptocurrency “Luno MCP”)
+MCP server for **LUNO — AI Backend Platform**. Claude Code, Cursor, and Codex operate content, forms, auth, and storage via natural language — schema, content, and publish. No backend to build. LUNO does **not** generate frontend code; CMS and forms are capabilities, not the product category. Not the unrelated cryptocurrency “Luno” exchange MCP.
+
+- npm: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp)
 - Official MCP Registry: [`io.github.luno-cms/mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.luno-cms/mcp)
 - Source: [`github.com/luno-cms/mcp`](https://github.com/luno-cms/mcp)
 - Site: [luno.rest](https://luno.rest) · Docs: [doc.luno.rest](https://doc.luno.rest)
