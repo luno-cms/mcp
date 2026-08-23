@@ -26,6 +26,7 @@ import { formBlueprintSchema } from "./form-blueprint-schema.js";
 import { masterBlueprintEntitiesSchema } from "./master-blueprint-schema.js";
 import { uploadMediaInputSchema } from "./upload-media-schema.js";
 import { applyBuiltinFormTemplateSchema } from "./apply-builtin-template-schema.js";
+import { bulkCreateEntriesInputSchema } from "./bulk-entry-schema.js";
 
 function textResult(data: unknown) {
   return {
@@ -49,7 +50,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.27" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.28" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -179,6 +180,25 @@ export async function startLunoMcp(): Promise<void> {
           method: "POST",
           json: {
             slug,
+            ...(idempotencyKey ? { idempotencyKey } : {}),
+          },
+        })
+      )
+  );
+
+  mcp.registerTool(
+    "bulk_create_entries",
+    {
+      description:
+        "Form Set 内にエントリを最大 50 件一括作成（slug のみ。本文は save_revision）。必須: formSetId, items[{ slug }]。任意: idempotencyKey（バッチ全体の冪等リプレイ）。各 item は独立に成功/失敗（slug 衝突は当該 item のみ failed）。N×create_entry の代わりに 1 ツールコール。削除の一括は不可（agent.mcp-security-permissions）。",
+      inputSchema: bulkCreateEntriesInputSchema,
+    },
+    async ({ formSetId, items, idempotencyKey }) =>
+      textResult(
+        await lunoJson(`/v1/form-sets/${formSetId}/entries/bulk-create`, {
+          method: "POST",
+          json: {
+            items,
             ...(idempotencyKey ? { idempotencyKey } : {}),
           },
         })
@@ -1000,7 +1020,7 @@ export async function startLunoMcp(): Promise<void> {
 
   // stdio MCP: logs must go to stderr so they don't corrupt the protocol
   console.error(
-    `[luno-mcp] ready version=0.2.27 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈45 incl. get_pub_preview_url,get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
+    `[luno-mcp] ready version=0.2.28 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈46 incl. bulk_create_entries,get_pub_preview_url,get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
   );
 
   const transport = new StdioServerTransport();
