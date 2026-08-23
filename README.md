@@ -51,8 +51,12 @@ Inventory: [docs/RESOURCES.md](./docs/RESOURCES.md). Live per-tenant schema: `ge
 
 - npm: [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) (not the unrelated cryptocurrency “Luno” MCP)
 - Official MCP Registry: [`io.github.luno-cms/mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.luno-cms/mcp)
+- Glama: [`luno-cms/mcp`](https://glama.ai/mcp/servers/luno-cms/mcp)
+- mcpservers.org: [`luno-rest`](https://mcpservers.org/servers/luno-rest) · [![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/luno-rest)
 - Source: [`github.com/luno-cms/mcp`](https://github.com/luno-cms/mcp)
 - Site: [luno.rest](https://luno.rest) · Docs: [doc.luno.rest](https://doc.luno.rest)
+
+Directory checklist: [docs/DISCOVERY.md](./docs/DISCOVERY.md)
 
 **Product docs (EN):** [AI Agents](https://doc.luno.rest/en/api/ai-agents) · [doc.luno.rest](https://doc.luno.rest)  
 **Product docs (JA):** [AI Agents](https://doc.luno.rest/ja/api/ai-agents)
