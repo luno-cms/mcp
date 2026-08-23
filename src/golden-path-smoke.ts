@@ -240,7 +240,7 @@ export async function runGoldenPathSmoke(): Promise<GoldenPathSmokeResult> {
     stderr: "pipe",
   });
 
-  const client = new Client({ name: "luno-golden-path-smoke", version: "0.2.26" });
+  const client = new Client({ name: "luno-golden-path-smoke", version: "0.2.27" });
   await client.connect(transport);
 
   await assertMcpResourcesReady(client);
@@ -342,6 +342,16 @@ export async function runGoldenPathSmoke(): Promise<GoldenPathSmokeResult> {
     const revision = saved.revision;
     if (!revisionRowId || typeof revision !== "number") {
       throw new Error(`save_revision missing id/revision: ${JSON.stringify(saved)}`);
+    }
+
+    const preview = (await callToolOnce(
+      client,
+      "get_pub_preview_url",
+      { formSetId, entryId, revisionRowId, target: "luno" },
+      toolCalls
+    )) as { url?: string; expiresAt?: string | null; target?: string };
+    if (!preview.url || typeof preview.url !== "string") {
+      throw new Error(`get_pub_preview_url missing url: ${JSON.stringify(preview)}`);
     }
 
     await callToolOnce(

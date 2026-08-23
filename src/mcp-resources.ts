@@ -116,10 +116,23 @@ Content is never "instant published". Flow:
 1. \`create_entry\` or use existing \`entryId\`
 2. \`get_form_set_schema\` → build snapshot
 3. \`save_revision\` → creates **draft** revision
-4. Optional workflow: \`submit_revision\` → \`approve_revision\` (human or agent with rights)
-5. \`publish_revision\` → makes revision **published** (public API)
+4. \`get_pub_preview_url\` → human opens \`url\` in browser (Preview → Human review)
+5. \`publish_revision\` → publish (or human approves in Console if \`can_publish=false\`)
 
 There is no path that skips \`save_revision\`.
+
+## Preview → Approval → Publish
+
+\`\`\`text
+save_revision → get_pub_preview_url → human opens url
+      ↓
+publish_revision (can_publish=true) OR Console approval (can_publish=false → pendingHumanApproval)
+\`\`\`
+
+- \`get_pub_preview_url\`: POST admin pub-preview-url. Unpublished drafts get a signed \`preview_token\` (≈15 min).
+- \`target=external\` (default): form set \`detail_url_template\` if set, else LUNO host.
+- \`target=luno\`: LUNO hosted pub URL only.
+- Unpublished preview requires **Standard+** plan on the project.
 
 ## Revision statuses
 

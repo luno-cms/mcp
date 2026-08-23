@@ -166,7 +166,7 @@ One MCP entry = one key. Split by site or scope with different MCP server names.
 | `get_public_api_info` | Agent key `projectId` + public API base (entries / master-entities) |
 | `list_entries` / `get_entry` | Entry list / detail |
 | `create_entry` / `update_entry` | Create entry / update slug |
-| `list_revisions` / `save_revision` / `publish_revision` | Revisions / publish (`can_publish=false` keys stop at submit + `pendingHumanApproval`) |
+| `list_revisions` / `save_revision` / `get_pub_preview_url` / `publish_revision` | Revisions / preview URL for human review / publish (`can_publish=false` keys stop at submit + `pendingHumanApproval`) |
 | `submit_entry_for_review` | Submit for approval |
 | `list_media` | Media list |
 | `upload_media` | Upload (`filePath` / `sourceUrl` / `base64` → asset id) |
