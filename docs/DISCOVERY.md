@@ -18,16 +18,21 @@ Quick start CTA: `npx @luno-cms/mcp setup`
 | **GitHub** | Live | [`github.com/luno-cms/mcp`](https://github.com/luno-cms/mcp) + `glama.json` |
 | **Glama** | Live (claimed) | [`glama.ai/mcp/servers/luno-cms/mcp`](https://glama.ai/mcp/servers/luno-cms/mcp) — use `npx` setup, not hosted “Install Server” |
 | **mcpservers.org** | Live | [`mcpservers.org/servers/luno-rest`](https://mcpservers.org/servers/luno-rest) |
-| **mcp.so** | Pending | Submit at [mcp.so/submit?type=server](https://mcp.so/submit?type=server) (free review queue or $39 instant) |
+| **mcp.so** | Submitted (free review) | [chatmcp/mcpso#3707](https://github.com/chatmcp/mcpso/issues/3707) — queued via GitHub issue (not paid $39) |
 | **Test B baseline** | Pending | `luno-cms/marketing` `docs/phase2-ai-discovery-baseline.md` — re-run after directory mix is stable |
 
-## mcp.so submission copy
+## mcp.so submission
 
-| Field | Value |
+Free review queue: open a GitHub issue on [`chatmcp/mcpso`](https://github.com/chatmcp/mcpso) (automatable via `npx mcp-submit --only mcp.so`).
+
+| | |
 | --- | --- |
+| **Status** | Submitted 2026-08-23 — [issue #3707](https://github.com/chatmcp/mcpso/issues/3707) |
 | Repository URL | `https://github.com/luno-cms/mcp` |
 | Name | `LUNO — AI Backend Platform` |
 | Description | MCP server for LUNO: AI agents build, operate, and govern production backends (schemas, content, forms, auth, storage, publish). `npx @luno-cms/mcp setup` for Claude Code, Cursor, Codex. |
+
+Paid instant path (optional): [mcp.so/submit?type=server](https://mcp.so/submit?type=server) ($39).
 
 ## Publish flow (npm + Registry)
 
