@@ -49,7 +49,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.26" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.27" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -158,7 +158,7 @@ export async function startLunoMcp(): Promise<void> {
     "create_entry",
     {
       description:
-        "エントリを新規作成（本文は含めない。続けて save_revision → publish_revision）。必須: formSetId（UUID）, slug（エントリの URL スラッグ）。任意: idempotencyKey（同一キー再送で同じ id）。返却 id を entryId に使う。",
+        "エントリを新規作成（本文は含めない。続けて save_revision → get_pub_preview_url → publish_revision）。必須: formSetId（UUID）, slug（エントリの URL スラッグ）。任意: idempotencyKey（同一キー再送で同じ id）。返却 id を entryId に使う。",
       inputSchema: {
         formSetId: formSetIdSchema,
         slug: z
@@ -281,6 +281,32 @@ export async function startLunoMcp(): Promise<void> {
     },
     async ({ formSetId, entryId }) =>
       textResult(await listRevisions(formSetId, entryId))
+  );
+
+  mcp.registerTool(
+    "get_pub_preview_url",
+    {
+      description:
+        "下書き/承認待ちリビジョンのプレビュー URL を取得（POST pub-preview-url）。必須: formSetId, entryId, revisionRowId（= save_revision の id）。任意: target（external=外部サイトテンプレ優先・既定, luno=LUNO ホスト）。返却 url を人間がブラウザで開いて確認。続けて publish_revision（can_publish=false なら pendingHumanApproval で人間承認）。未公開は Standard 以上プラン。詳細: luno://publishing-guide / agent.publish-revision。",
+      inputSchema: {
+        formSetId: formSetIdSchema,
+        entryId: entryIdSchema,
+        revisionRowId: revisionRowIdSchema,
+        target: z
+          .enum(["external", "luno"])
+          .optional()
+          .describe("external（既定）: detail_url_template 優先。luno: LUNO ホスト pub のみ"),
+      },
+    },
+    async ({ formSetId, entryId, revisionRowId, target }) => {
+      const qs = target ? `?target=${encodeURIComponent(target)}` : "";
+      return textResult(
+        await lunoJson(
+          `/v1/form-sets/${formSetId}/entries/${entryId}/revisions/${revisionRowId}/pub-preview-url${qs}`,
+          { method: "POST" }
+        )
+      );
+    }
   );
 
   mcp.registerTool(
@@ -974,7 +1000,7 @@ export async function startLunoMcp(): Promise<void> {
 
   // stdio MCP: logs must go to stderr so they don't corrupt the protocol
   console.error(
-    `[luno-mcp] ready version=0.2.26 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈44 incl. get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
+    `[luno-mcp] ready version=0.2.27 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈45 incl. get_pub_preview_url,get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
   );
 
   const transport = new StdioServerTransport();

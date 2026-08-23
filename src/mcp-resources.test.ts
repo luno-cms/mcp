@@ -33,9 +33,10 @@ describe("mcp resources catalog", () => {
     expect(fieldTypes?.body).toContain("image_gallery");
   });
 
-  it("publishing-guide documents save_revision and can_publish", () => {
+  it("publishing-guide documents save_revision, preview, and can_publish", () => {
     const pub = LUNO_MCP_RESOURCES.find((r) => r.uri.endsWith("publishing-guide"));
     expect(pub?.body).toContain("save_revision");
+    expect(pub?.body).toContain("get_pub_preview_url");
     expect(pub?.body).toContain("can_publish");
   });
 });
