@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { getLunoApiBase, getLunoAgentKey, getMcpFunnelId, lunoFormData, lunoJson } from "./luno-api.js";
+import { getLunoApiBase, getLunoAgentKey, getActiveAgentRunId, getMcpFunnelId, lunoFormData, lunoJson, setActiveAgentRunId } from "./luno-api.js";
 import {
   buildPublicApiInfo,
   enrichFormSetSchema,
@@ -20,6 +20,11 @@ import {
   revisionRowIdSchema,
 } from "./mcp-id-schemas.js";
 import { proposeChangeInputSchema } from "./change-plan-schema.js";
+import {
+  endAgentRunInputSchema,
+  getAgentRunInputSchema,
+  startAgentRunInputSchema,
+} from "./agent-run-schema.js";
 import { tryFormatMcpInvalidArgumentsMessage } from "./agent-errors.js";
 import { contactFormFieldsArraySchema } from "./contact-form-fields.js";
 import { registerMcpResources } from "./mcp-resources.js";
@@ -52,7 +57,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.30" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.31" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -420,10 +425,64 @@ export async function startLunoMcp(): Promise<void> {
             steps,
             impact: impact ?? [],
             risk,
-            ...(runId ? { runId } : {}),
+            ...(() => {
+              const id = runId ?? getActiveAgentRunId();
+              return id ? { runId: id } : {};
+            })(),
           },
         })
       )
+  );
+
+  mcp.registerTool(
+    "start_agent_run",
+    {
+      description:
+        "エージェントタスクの Run を開始（schema/full）。必須: goal。任意: clientLabel（cursor / claude-code / mcp 等）。返却 agentRun.id を以降のツール呼び出しに X-Agent-Run-Id として自動付与（本 MCP セッション内）。詳細: settings.agent-activity / agent.mcp-security-permissions",
+      inputSchema: startAgentRunInputSchema,
+    },
+    async ({ goal, clientLabel }) => {
+      const data = (await lunoJson("/v1/agent-runs", {
+        method: "POST",
+        json: {
+          goal,
+          ...(clientLabel ? { clientLabel } : {}),
+        },
+      })) as { agentRun?: { id?: string } };
+      if (data.agentRun?.id) {
+        setActiveAgentRunId(data.agentRun.id);
+      }
+      return textResult(data);
+    }
+  );
+
+  mcp.registerTool(
+    "end_agent_run",
+    {
+      description:
+        "Agent Run を終了（schema/full）。必須: runId, status（completed / failed / cancelled）。start_agent_run の agentRun.id を渡す。メトリクス（auditLogCount 等）を返す。",
+      inputSchema: endAgentRunInputSchema,
+    },
+    async ({ runId, status }) => {
+      const data = await lunoJson(`/v1/agent-runs/${runId}`, {
+        method: "PATCH",
+        json: { status },
+      });
+      if (getActiveAgentRunId() === runId) {
+        setActiveAgentRunId(null);
+      }
+      return textResult(data);
+    }
+  );
+
+  mcp.registerTool(
+    "get_agent_run",
+    {
+      description:
+        "Agent Run の状態・メトリクスを取得（schema/full）。必須: runId。自分が開始した run のみ（他キーは 403）。",
+      inputSchema: getAgentRunInputSchema,
+    },
+    async ({ runId }) => textResult(await lunoJson(`/v1/agent-runs/${runId}`))
   );
 
   mcp.registerTool(

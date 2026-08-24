@@ -50,3 +50,8 @@ export const changePlanIdSchema = uuidField(
   "planId",
   "Change Plan の UUID（propose_change レスポンス changePlan.id）"
 );
+
+export const agentRunIdSchema = uuidField(
+  "runId",
+  "Agent Run の UUID（start_agent_run レスポンス agentRun.id）"
+);
