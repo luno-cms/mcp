@@ -249,6 +249,8 @@ The Console does not send keys. Without a key, behavior is unchanged. After time
 | `list_builtin_form_templates` | `GET /v1/form-set-templates/builtin` |
 | `apply_builtin_form_template` | Preferred: `templateSlug` → `POST /v1/form-set-templates/builtin/:slug/apply`. Compat: `templateId` → `POST /v1/form-set-templates/:id/apply` (`dryRun: true` OK) |
 | `archive_form_set` | `POST /v1/form-sets/:id/archive` (agents: `dryRun: true` → `confirmToken` for real run; soft-delete via `deleted_at`; HTTP DELETE not allowed) |
+| `propose_change` | `POST /v1/change-plans` (**does not execute** mutations; human approves in Console) |
+| `get_change_plan` | `GET /v1/change-plans/:id` (own proposed plans only) |
 | `get_funnel_status` | `GET /v1/measurement/funnels/:funnelId` (defaults to MCP session funnel) |
 | `create_contact_form` | `POST /v1/contact-forms` (`fields`: `{ key, type, label:{ja,en}, required }` — not Form Set `fieldKey`. `autoreply_*` / `email_signature` OK) |
 | `update_contact_form` | `PUT /v1/contact-forms/:id` (same fields shape; thank-you email settings) |

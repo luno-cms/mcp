@@ -45,3 +45,8 @@ export const contactFormIdSchema = uuidField(
   "contactFormId",
   "Contact Form の UUID（作成・一覧レスポンスの id）"
 );
+
+export const changePlanIdSchema = uuidField(
+  "planId",
+  "Change Plan の UUID（propose_change レスポンス changePlan.id）"
+);

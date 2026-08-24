@@ -10,6 +10,7 @@ import {
 import { listRevisions, publishRevisionFlow, saveRevision } from "./revision-flow.js";
 import { prepareUploadBlob } from "./upload-media.js";
 import {
+  changePlanIdSchema,
   contactFormIdSchema,
   entryIdSchema,
   formSetIdSchema,
@@ -18,6 +19,7 @@ import {
   revisionNumberSchema,
   revisionRowIdSchema,
 } from "./mcp-id-schemas.js";
+import { proposeChangeInputSchema } from "./change-plan-schema.js";
 import { tryFormatMcpInvalidArgumentsMessage } from "./agent-errors.js";
 import { contactFormFieldsArraySchema } from "./contact-form-fields.js";
 import { registerMcpResources } from "./mcp-resources.js";
@@ -50,7 +52,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.29" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.30" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -400,6 +402,38 @@ export async function startLunoMcp(): Promise<void> {
           },
         })
       )
+  );
+
+  mcp.registerTool(
+    "propose_change",
+    {
+      description:
+        "複数ステップの構造変更を Change Plan として提案（schema/full）。必須: goal, risk, steps（各 step に dry_run + mutation.body）。本ツールは mutations を実行しない。Human が Console で承認するまで pending_approval。先に apply_* を dryRun: true で呼び、返却を steps[].dry_run.raw に格納し、本実行用 body を mutation.body に入れる。詳細: agent.change-plans / agent.mcp-security-permissions",
+      inputSchema: proposeChangeInputSchema,
+    },
+    async ({ goal, steps, impact, risk, runId }) =>
+      textResult(
+        await lunoJson("/v1/change-plans", {
+          method: "POST",
+          json: {
+            goal,
+            steps,
+            impact: impact ?? [],
+            risk,
+            ...(runId ? { runId } : {}),
+          },
+        })
+      )
+  );
+
+  mcp.registerTool(
+    "get_change_plan",
+    {
+      description:
+        "Change Plan の状態を取得（schema/full）。必須: planId（propose_change の changePlan.id）。自分が提案した plan のみ。承認・却下・実行は Human Console のみ。",
+      inputSchema: { planId: changePlanIdSchema },
+    },
+    async ({ planId }) => textResult(await lunoJson(`/v1/change-plans/${planId}`))
   );
 
   mcp.registerTool(
