@@ -251,6 +251,9 @@ The Console does not send keys. Without a key, behavior is unchanged. After time
 | `archive_form_set` | `POST /v1/form-sets/:id/archive` (agents: `dryRun: true` → `confirmToken` for real run; soft-delete via `deleted_at`; HTTP DELETE not allowed) |
 | `propose_change` | `POST /v1/change-plans` (**does not execute** mutations; human approves in Console) |
 | `get_change_plan` | `GET /v1/change-plans/:id` (own proposed plans only) |
+| `start_agent_run` | `POST /v1/agent-runs` (sets `X-Agent-Run-Id` on subsequent tool calls in this MCP process) |
+| `end_agent_run` | `PATCH /v1/agent-runs/:runId` (terminal status; clears active run header) |
+| `get_agent_run` | `GET /v1/agent-runs/:runId` (own runs only; includes metrics) |
 | `get_funnel_status` | `GET /v1/measurement/funnels/:funnelId` (defaults to MCP session funnel) |
 | `create_contact_form` | `POST /v1/contact-forms` (`fields`: `{ key, type, label:{ja,en}, required }` — not Form Set `fieldKey`. `autoreply_*` / `email_signature` OK) |
 | `update_contact_form` | `PUT /v1/contact-forms/:id` (same fields shape; thank-you email settings) |

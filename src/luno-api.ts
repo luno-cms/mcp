@@ -5,6 +5,9 @@ import { formatLunoApiFailure } from "./agent-errors.js";
 /** MCP プロセス単位の funnel（event-spec）。stdio 再接続で新しい UUID。 */
 let processFunnelId: string | null = null;
 
+/** 現在の Agent Run（start_agent_run 後に設定。end でクリア）。 */
+let activeAgentRunId: string | null = null;
+
 export function getMcpFunnelId(): string {
   if (!processFunnelId) {
     processFunnelId = crypto.randomUUID();
@@ -15,6 +18,19 @@ export function getMcpFunnelId(): string {
 /** テスト用 */
 export function resetMcpFunnelIdForTests(): void {
   processFunnelId = null;
+}
+
+export function setActiveAgentRunId(runId: string | null): void {
+  activeAgentRunId = runId?.trim() || null;
+}
+
+export function getActiveAgentRunId(): string | null {
+  return activeAgentRunId;
+}
+
+/** テスト用 */
+export function resetActiveAgentRunIdForTests(): void {
+  activeAgentRunId = null;
 }
 
 export function getLunoApiBase(): string {
@@ -42,6 +58,11 @@ function measurementHeaders(): Record<string, string> {
   };
 }
 
+function agentRunHeaders(): Record<string, string> {
+  const id = activeAgentRunId;
+  return id ? { "X-Agent-Run-Id": id } : {};
+}
+
 async function parseLunoResponse(res: Response, url: string): Promise<unknown> {
   const text = await res.text();
   if (!res.ok) {
@@ -66,6 +87,7 @@ export async function lunoJson(
     Authorization: `Bearer ${key}`,
     Accept: "application/json",
     ...measurementHeaders(),
+    ...agentRunHeaders(),
     ...(opts?.headers ?? {}),
   };
   let body: string | undefined;
@@ -96,6 +118,7 @@ export async function lunoFormData(
       Authorization: `Bearer ${key}`,
       Accept: "application/json",
       ...measurementHeaders(),
+      ...agentRunHeaders(),
     },
     body: form,
   });
