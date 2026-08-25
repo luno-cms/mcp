@@ -57,7 +57,7 @@ export async function startLunoMcp(): Promise<void> {
   getLunoAgentKey();
   const funnelId = getMcpFunnelId();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.32" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.33" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
