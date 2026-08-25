@@ -34,6 +34,7 @@ import { masterBlueprintEntitiesSchema } from "./master-blueprint-schema.js";
 import { uploadMediaInputSchema } from "./upload-media-schema.js";
 import { applyBuiltinFormTemplateSchema } from "./apply-builtin-template-schema.js";
 import { bulkCreateEntriesInputSchema } from "./bulk-entry-schema.js";
+import { TOOL_ANNOTATIONS } from "./tool-annotations.js";
 
 function textResult(data: unknown) {
   return {
@@ -76,6 +77,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_tenant_schema",
     {
+      annotations: TOOL_ANNOTATIONS.get_tenant_schema,
       description:
         "操作中プロジェクトのフォームセット・フィールド定義を一括取得する。引数なし。",
     },
@@ -85,6 +87,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_project_overview",
     {
+      annotations: TOOL_ANNOTATIONS.get_project_overview,
       description:
         "既存プロジェクト再開時の最初の一手。Form Sets（公開/下書き件数）・Contact Forms・Masters・メディア/quota・ログイン見た目要約・IP allowlist 有無（Business+）・locales・公開 API ベースを返す。権限不足セクションは available:false。新規サイト作成の Golden Path とは別。詳細は get_form_set_schema / get_login_appearance 等。引数なし。",
     },
@@ -94,6 +97,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_form_sets",
     {
+      annotations: TOOL_ANNOTATIONS.list_form_sets,
       description:
         "Form Set 一覧を取得する。引数なし。各 item の id（UUID）を他ツールの formSetId に使う（slug ではない）。",
     },
@@ -103,6 +107,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_form_set_schema",
     {
+      annotations: TOOL_ANNOTATIONS.get_form_set_schema,
       description:
         "1 つの Form Set のスキーマ + save_revision 用 snapshotShape。select/radio/multiselect には masterEntityKey・sampleValues・公開 records URL を付与。保存前に必ず確認する。必須: formSetId（UUID。Form Set の slug ではない。list_form_sets / apply_* の id）。",
       inputSchema: { formSetId: formSetIdSchema },
@@ -123,6 +128,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_public_api_info",
     {
+      annotations: TOOL_ANNOTATIONS.get_public_api_info,
       description:
         "エージェントキーのプロジェクト向け公開 API ベース URL を返す。引数なし。ローカルでは /public/p/{projectId}/v1 を使う（Host ベース /public/v1 は DEFAULT_TENANT_ID に落ちる）。",
     },
@@ -141,6 +147,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_entries",
     {
+      annotations: TOOL_ANNOTATIONS.list_entries,
       description:
         "Form Set 内のエントリ一覧。必須: formSetId（UUID）。返却 item.id を entryId に使う。",
       inputSchema: { formSetId: formSetIdSchema },
@@ -152,6 +159,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_entry",
     {
+      annotations: TOOL_ANNOTATIONS.get_entry,
       description: "エントリ 1 件。必須: formSetId, entryId（いずれも UUID）。",
       inputSchema: {
         formSetId: formSetIdSchema,
@@ -165,6 +173,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "create_entry",
     {
+      annotations: TOOL_ANNOTATIONS.create_entry,
       description:
         "エントリを新規作成（本文は含めない。続けて save_revision → get_pub_preview_url → publish_revision）。必須: formSetId（UUID）, slug（エントリの URL スラッグ）。任意: idempotencyKey（同一キー再送で同じ id）。返却 id を entryId に使う。",
       inputSchema: {
@@ -196,6 +205,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "bulk_create_entries",
     {
+      annotations: TOOL_ANNOTATIONS.bulk_create_entries,
       description:
         "Form Set 内にエントリを最大 50 件一括作成（slug のみ。本文は save_revision）。必須: formSetId, items[{ slug }]。任意: idempotencyKey（バッチ全体の冪等リプレイ）。各 item は独立に成功/失敗（slug 衝突は当該 item のみ failed）。N×create_entry の代わりに 1 ツールコール。削除の一括は不可（agent.mcp-security-permissions）。",
       inputSchema: bulkCreateEntriesInputSchema,
@@ -215,6 +225,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "update_entry",
     {
+      annotations: TOOL_ANNOTATIONS.update_entry,
       description: "エントリの slug を更新。必須: formSetId, entryId, slug。",
       inputSchema: {
         formSetId: formSetIdSchema,
@@ -234,6 +245,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "submit_entry_for_review",
     {
+      annotations: TOOL_ANNOTATIONS.submit_entry_for_review,
       description:
         "指定リビジョンを承認申請する（公開まで一括したい場合は publish_revision を優先）。必須: formSetId, entryId, revisionRowId（= save_revision の id）, revision（= save_revision の revision）。",
       inputSchema: {
@@ -255,6 +267,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_media",
     {
+      annotations: TOOL_ANNOTATIONS.list_media,
       description:
         "アップロード済みメディア（アセット）一覧。任意: limit（1–100、既定 30）。",
       inputSchema: {
@@ -276,6 +289,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "upload_media",
     {
+      annotations: TOOL_ANNOTATIONS.upload_media,
       description:
         "メディアライブラリへ画像/ファイルをアップロード（POST /v1/media）。必須（いずれか一方）: sourceUrl / base64 / filePath（ローカルパス推奨）。任意: filename, mimeType, folderId。返却 id（UUID）を image / image_gallery に入れる（luno://content/schema-guide）。外部 URL を snapshot に直書きしない。stg/prod へローカル画像を上げるときは filePath（sourceUrl の 127.0.0.1 は届かない）。",
       inputSchema: uploadMediaInputSchema,
@@ -299,6 +313,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_revisions",
     {
+      annotations: TOOL_ANNOTATIONS.list_revisions,
       description:
         "エントリのリビジョン一覧。必須: formSetId, entryId。各 item の id / revision を publish_revision に渡す。",
       inputSchema: {
@@ -313,6 +328,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_pub_preview_url",
     {
+      annotations: TOOL_ANNOTATIONS.get_pub_preview_url,
       description:
         "下書き/承認待ちリビジョンのプレビュー URL を取得（POST pub-preview-url）。必須: formSetId, entryId, revisionRowId（= save_revision の id）。任意: target（external=外部サイトテンプレ優先・既定, luno=LUNO ホスト）。返却 url を人間がブラウザで開いて確認。続けて publish_revision（can_publish=false なら pendingHumanApproval で人間承認）。未公開は Standard 以上プラン。詳細: luno://publishing-guide / agent.publish-revision。",
       inputSchema: {
@@ -339,6 +355,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "save_revision",
     {
+      annotations: TOOL_ANNOTATIONS.save_revision,
       description:
         "エントリ本文を新しい下書きリビジョンとして保存。必須: formSetId, entryId, snapshot。snapshot は { [formKey]: { [fieldKey]: value } }（フォームキー配下にネスト）。フラットな field_key トップレベルは 400。任意: idempotencyKey。返却の id → publish_revision の revisionRowId、revision → publish_revision の revision。形は get_form_set_schema または luno://content/schema-guide。",
       inputSchema: {
@@ -359,6 +376,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "apply_form_blueprint",
     {
+      annotations: TOOL_ANNOTATIONS.apply_form_blueprint,
       description:
         "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。先に dryRun: true 推奨。詳細: agent.form-blueprint-mcp, luno://content/schema-guide。誤った Form Set は archive_form_set（soft-delete）。",
       inputSchema: {
@@ -383,6 +401,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "archive_form_set",
     {
+      annotations: TOOL_ANNOTATIONS.archive_form_set,
       description:
         "Form Set をアーカイブ（soft-delete / deleted_at。schema/full）。hard delete ではない。必須: formSetId。エージェントは先に dryRun: true で slug / entryCount / confirmToken を取得し、本実行で confirmToken を渡す（トークンなしは 400）。人間の Console DELETE は従来どおり。Contact Form は削除不可。restore API は未提供。詳細: agent.undo-recovery / agent.mcp-security-permissions",
       inputSchema: {
@@ -412,6 +431,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "propose_change",
     {
+      annotations: TOOL_ANNOTATIONS.propose_change,
       description:
         "複数ステップの構造変更を Change Plan として提案（schema/full）。必須: goal, risk, steps（各 step に dry_run + mutation.body）。本ツールは mutations を実行しない。Human が Console で承認するまで pending_approval。先に apply_* を dryRun: true で呼び、返却を steps[].dry_run.raw に格納し、本実行用 body を mutation.body に入れる。詳細: agent.change-plans / agent.mcp-security-permissions",
       inputSchema: proposeChangeInputSchema,
@@ -437,6 +457,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "start_agent_run",
     {
+      annotations: TOOL_ANNOTATIONS.start_agent_run,
       description:
         "エージェントタスクの Run を開始（schema/full）。必須: goal。任意: clientLabel（cursor / claude-code / mcp 等）。返却 agentRun.id を以降のツール呼び出しに X-Agent-Run-Id として自動付与（本 MCP セッション内）。詳細: settings.agent-activity / agent.mcp-security-permissions",
       inputSchema: startAgentRunInputSchema,
@@ -459,6 +480,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "end_agent_run",
     {
+      annotations: TOOL_ANNOTATIONS.end_agent_run,
       description:
         "Agent Run を終了（schema/full）。必須: runId, status（completed / failed / cancelled）。start_agent_run の agentRun.id を渡す。メトリクス（auditLogCount 等）を返す。",
       inputSchema: endAgentRunInputSchema,
@@ -478,6 +500,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_agent_run",
     {
+      annotations: TOOL_ANNOTATIONS.get_agent_run,
       description:
         "Agent Run の状態・メトリクスを取得（schema/full）。必須: runId。自分が開始した run のみ（他キーは 403）。",
       inputSchema: getAgentRunInputSchema,
@@ -488,6 +511,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_change_plan",
     {
+      annotations: TOOL_ANNOTATIONS.get_change_plan,
       description:
         "Change Plan の状態を取得（schema/full）。必須: planId（propose_change の changePlan.id）。自分が提案した plan のみ。承認・却下・実行は Human Console のみ。",
       inputSchema: { planId: changePlanIdSchema },
@@ -498,6 +522,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_builtin_form_templates",
     {
+      annotations: TOOL_ANNOTATIONS.list_builtin_form_templates,
       description:
         "LUNO 公式 Form Set スターター一覧（引数なし）。返却 slug を apply_builtin_form_template の templateSlug に使う。詳細: agent.builtin-form-templates",
       inputSchema: {},
@@ -508,6 +533,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "apply_builtin_form_template",
     {
+      annotations: TOOL_ANNOTATIONS.apply_builtin_form_template,
       description:
         "Builtin フォームテンプレから新規 Form Set を作成（schema/full）。必須: slug, name。テンプレ指定は templateSlug（list_builtin_form_templates の slug・推奨）または templateId（DB テンプレ UUID）のどちらか必須。任意: description, dryRun, idempotencyKey。返却 id を formSetId に使う。詳細: agent.builtin-form-templates。",
       inputSchema: applyBuiltinFormTemplateSchema,
@@ -543,6 +569,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "validate_master_blueprint",
     {
+      annotations: TOOL_ANNOTATIONS.validate_master_blueprint,
       description:
         "Master Blueprint を検証（schema/full）。必須: entities（1 件以上の配列）。各 entity: key, name, records[{ value, label, sort_order }]。適用はしない。詳細: agent.master-blueprint-mcp, luno://content/schema-guide。",
       inputSchema: {
@@ -561,6 +588,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "apply_master_blueprint",
     {
+      annotations: TOOL_ANNOTATIONS.apply_master_blueprint,
       description:
         "Master Blueprint を一括 upsert（schema/full）。必須: entities。任意: dryRun, publish（true でサイトに反映し公開マスタ API に載る。省略時は未反映）。各 record の並びは sort_order / sortOrder。エージェントキーでは update_master_record 不可のためここで正しい sort_order を渡す。詳細: agent.master-blueprint-mcp, luno://content/schema-guide",
       inputSchema: {
@@ -588,6 +616,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "create_contact_form",
     {
+      annotations: TOOL_ANNOTATIONS.create_contact_form,
       description:
         "Contact Form を新規作成（schema/full。削除は不可）。必須: slug, name, recipient_email。任意: fields, autoreply_*, email_signature, idempotencyKey。fields は Form Set の fieldKey 形ではない。各要素は { key, type, label:{ja,en}, required }。type は text|email|tel|textarea|select|checkbox|file。詳細: agent.contact-form-mcp。",
       inputSchema: {
@@ -645,6 +674,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "update_contact_form",
     {
+      annotations: TOOL_ANNOTATIONS.update_contact_form,
       description:
         "Contact Form を更新（PUT・schema/full。GET した全フィールドを body に含める）。必須: formId（Contact Form UUID）, slug, name, recipient_email, fields。任意: autoreply_*, email_signature。fields は { key, type, label:{ja,en}, required }[]（Form Set の fieldKey ではない）。詳細: agent.contact-form-mcp。",
       inputSchema: {
@@ -695,6 +725,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_master_entities",
     {
+      annotations: TOOL_ANNOTATIONS.list_master_entities,
       description:
         "マスタエンティティ一覧（引数なし。key / hierarchical / record_count 含む）。item.id を entityId に使う。",
     },
@@ -704,6 +735,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_master_entity",
     {
+      annotations: TOOL_ANNOTATIONS.get_master_entity,
       description: "マスタエンティティ 1 件。必須: entityId（UUID。list_master_entities の id）。",
       inputSchema: { entityId: masterEntityIdSchema },
     },
@@ -713,6 +745,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_master_records",
     {
+      annotations: TOOL_ANNOTATIONS.list_master_records,
       description:
         "マスタレコード一覧（label は locale map。階層時は parent_record_id）。必須: entityId。任意: q（検索）。",
       inputSchema: {
@@ -729,6 +762,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "create_master_record",
     {
+      annotations: TOOL_ANNOTATIONS.create_master_record,
       description:
         "マスタレコードを新規作成（content 可）。必須: entityId, label（string または locale map）。任意: value, sortOrder, parentRecordId, data。並びの一括投入は apply_master_blueprint 推奨。",
       inputSchema: {
@@ -761,6 +795,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "update_master_record",
     {
+      annotations: TOOL_ANNOTATIONS.update_master_record,
       description:
         "マスタレコードを更新。必須: entityId, recordId。任意: label, value, sortOrder, parentRecordId, data。**エージェント API キーでは不可**（401 — ユーザ JWT + 編集権限が必要）。並び替えは apply_master_blueprint の sort_order を使う。",
       inputSchema: {
@@ -791,6 +826,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "update_master_tree",
     {
+      annotations: TOOL_ANNOTATIONS.update_master_tree,
       description:
         "階層マスタの親子・並び順を一括更新。必須: entityId, updates（全レコードを含める配列。各要素に id, parent_record_id, sort_order）。エージェントキーでは 403。",
       inputSchema: {
@@ -818,6 +854,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "search_admin_help",
     {
+      annotations: TOOL_ANNOTATIONS.search_admin_help,
       description:
         "ヘルプ KB 検索。必須: q。任意: locale（ja|en）, limit（既定 20）。category agent（snapshot / Form Blueprint / 公開 API / publish_revision）もヒット。",
       inputSchema: {
@@ -837,6 +874,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_admin_help_article",
     {
+      annotations: TOOL_ANNOTATIONS.get_admin_help_article,
       description:
         "管理画面ヘルプ記事 1 件の本文。必須: articleId（search_admin_help の id。例: content.publish-workflow, agent.publish-revision）。",
       inputSchema: {
@@ -854,6 +892,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "ask_admin_help",
     {
+      annotations: TOOL_ANNOTATIONS.ask_admin_help,
       description:
         "LUNO の使い方を自然言語で質問（RAG）。必須: question。任意: locale。snapshot / 公開 API / Blueprint は category agent を参照。",
       inputSchema: {
@@ -873,6 +912,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_login_branding",
     {
+      annotations: TOOL_ANNOTATIONS.get_login_branding,
       description:
         "管理画面ログイン用ブランド取得（認証不要）。任意: projectId（省略時はエージェントキーのプロジェクト）。branding_tier / login_background / hide_* を返す。",
       inputSchema: {
@@ -898,6 +938,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_login_appearance",
     {
+      annotations: TOOL_ANNOTATIONS.get_login_appearance,
       description:
         "管理画面ログインの見た目設定を取得（認証要・引数なし）。背景=Standard+、WL=Business+。",
     },
@@ -907,6 +948,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "update_login_appearance",
     {
+      annotations: TOOL_ANNOTATIONS.update_login_appearance,
       description:
         "管理画面ログインの見た目を更新。任意（1 つ以上推奨）: adminLoginBackground（cosmic|gradient|plain|none・Standard+）, adminLoginHideLunoLogo, adminLoginHidePoweredBy（Business+）。",
       inputSchema: {
@@ -944,6 +986,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "list_console_login_ip_allowlists",
     {
+      annotations: TOOL_ANNOTATIONS.list_console_login_ip_allowlists,
       description: "管理画面ログイン IP 許可リスト一覧（Business+・引数なし）。",
     },
     async () => textResult(await lunoJson("/v1/console-login-ip-allowlists"))
@@ -952,6 +995,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "add_console_login_ip_allowlist",
     {
+      annotations: TOOL_ANNOTATIONS.add_console_login_ip_allowlist,
       description:
         "管理画面ログイン IP 許可ルールを追加（Business+・tenant スコープ）。必須: projectId（プロジェクト UUID）, cidr。",
       inputSchema: {
@@ -971,6 +1015,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "delete_console_login_ip_allowlist",
     {
+      annotations: TOOL_ANNOTATIONS.delete_console_login_ip_allowlist,
       description:
         "管理画面ログイン IP 許可ルールを削除（Business+）。必須: ruleId（list_console_login_ip_allowlists の id）。",
       inputSchema: {
@@ -986,6 +1031,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_project_content_locales",
     {
+      annotations: TOOL_ANNOTATIONS.get_project_content_locales,
       description:
         "サイトのコンテンツ多言語設定を取得（引数なし）。有効/無効・content_locales・content_default_locale。",
     },
@@ -995,6 +1041,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "patch_project_content_locales",
     {
+      annotations: TOOL_ANNOTATIONS.patch_project_content_locales,
       description:
         "サイトのコンテンツ多言語設定を更新（tenant_admin JWT のみ。エージェントキー不可）。任意: contentLocalesEnabled, contentDefaultLocale, contentLocales。",
       inputSchema: {
@@ -1034,6 +1081,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "translate_entry_locales",
     {
+      annotations: TOOL_ANNOTATIONS.translate_entry_locales,
       description:
         "text/textarea/tiptap をソース言語から他ロケールへ AI 翻訳（Standard+・AI チケット 1/回）。必須: sourceLocale, targetLocales（1–3）, fields（各 formKey/fieldKey/type/sourceText）。返却 items を snapshot にマージして save_revision。",
       inputSchema: {
@@ -1070,6 +1118,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "get_funnel_status",
     {
+      annotations: TOOL_ANNOTATIONS.get_funnel_status,
       description:
         "MCP Private Beta 計測ファネルを再構成。任意: funnelId（省略時は当セッション / LUNO_FUNNEL_ID）。詳細: agent.measurement-funnel",
       inputSchema: {
@@ -1092,6 +1141,7 @@ export async function startLunoMcp(): Promise<void> {
   mcp.registerTool(
     "publish_revision",
     {
+      annotations: TOOL_ANNOTATIONS.publish_revision,
       description:
         "リビジョンを公開（1 回で draft→submit→approve。サーバー /publish が中間 revision +1 を吸収）。必須: formSetId, entryId, revisionRowId（= save_revision の id）, revision（= save_revision の revision。save 直後の番号で可）。任意: publishAt（予約公開 ISO8601）。can_publish=false のキーは submit までで止まり pendingHumanApproval: true を返す（人間が Console で承認）。詳細: agent.publish-revision / agent.mcp-security-permissions",
       inputSchema: {
