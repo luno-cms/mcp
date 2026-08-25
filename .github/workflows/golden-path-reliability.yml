@@ -1,0 +1,42 @@
+name: Golden Path reliability
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1" # Weekly Monday 03:00 UTC
+
+concurrency:
+  group: golden-path-reliability
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  reliability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    env:
+      LUNO_API_URL: ${{ secrets.LUNO_API_URL }}
+      LUNO_AGENT_KEY: ${{ secrets.LUNO_AGENT_KEY }}
+      LUNO_RELIABILITY_ARTIFACT_PATH: golden-path-reliability.json
+      LUNO_GP_MAX_ERRORS: "0"
+      LUNO_GP_MAX_VALIDATION_ERRORS: "0"
+      LUNO_GP_MAX_TOOL_CALLS_WARNING: "15"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run golden-path-reliability
+      - name: Upload reliability artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-path-reliability-${{ github.run_id }}
+          path: golden-path-reliability.json
+          if-no-files-found: warn
