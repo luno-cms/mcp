@@ -58,8 +58,25 @@ export function codexTomlFragment(projectRoot: string): string {
 
 export type CodexMcpAdd = { name: string; argv: string[] };
 
-export function codexMcpAddArgv(projectRoot: string): CodexMcpAdd[] {
+/** POSIX PATH_MAX-class cap. Longer values are not useful as a project cwd. */
+const MAX_PROJECT_ROOT_LENGTH = 4096;
+
+function assertValidProjectRoot(projectRoot: string): string {
+  if (projectRoot.includes("\0")) {
+    throw new Error("Invalid projectRoot: contains NUL");
+  }
+  if (projectRoot.length > MAX_PROJECT_ROOT_LENGTH) {
+    throw new Error("Invalid projectRoot: exceeds max length");
+  }
   const abs = resolve(projectRoot);
+  if (abs.includes("\0") || abs.length > MAX_PROJECT_ROOT_LENGTH) {
+    throw new Error("Invalid projectRoot: resolved path is invalid");
+  }
+  return abs;
+}
+
+export function codexMcpAddArgv(projectRoot: string): CodexMcpAdd[] {
+  const abs = assertValidProjectRoot(projectRoot);
   const envArg = `LUNO_PROJECT_ROOT=${abs}`;
   return CODEX_MCP_ENVS.map((env) => ({
     name: `luno-${env}`,

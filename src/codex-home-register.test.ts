@@ -1,6 +1,17 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { codexMcpAddArgv, codexMcpAddCommands } from "./agent-configs.js";
 import { offerCodexHomeRegistration } from "./codex-home-register.js";
+
+const srcDir = dirname(fileURLToPath(import.meta.url));
+
+function productionSrcFiles(): string[] {
+  return readdirSync(srcDir)
+    .filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts"))
+    .map((name) => join(srcDir, name));
+}
 
 describe("codexMcpAddArgv", () => {
   it("returns three adds with structured argv", () => {
@@ -28,6 +39,32 @@ describe("codexMcpAddArgv", () => {
     const cmds = codexMcpAddCommands("/tmp/site");
     expect(cmds[0]).toMatch(/^codex mcp add luno-dev/);
     expect(cmds[1]).toContain("LUNO_PROJECT_ROOT\\=/tmp/site");
+  });
+
+  it("rejects a projectRoot that contains a NUL byte", () => {
+    expect(() => codexMcpAddArgv("/tmp/site\0evil")).toThrow(/projectRoot/i);
+  });
+
+  it("rejects a projectRoot that exceeds max length", () => {
+    const tooLong = `/tmp/${"a".repeat(5000)}`;
+    expect(() => codexMcpAddArgv(tooLong)).toThrow(/projectRoot/i);
+  });
+});
+
+describe("production src has no execSync (mcp#14)", () => {
+  it("does not import or call execSync", () => {
+    const hits: string[] = [];
+    for (const file of productionSrcFiles()) {
+      const src = readFileSync(file, "utf8");
+      if (/\bexecSync\b/.test(src)) hits.push(file);
+    }
+    expect(hits).toEqual([]);
+  });
+
+  it("detects codex via spawnSync argv, not a shell string", () => {
+    const src = readFileSync(join(srcDir, "codex-home-register.ts"), "utf8");
+    expect(src).toMatch(/spawnSync\(\s*["']which["']\s*,\s*\[\s*["']codex["']\s*\]/);
+    expect(src).not.toMatch(/spawnSync\(\s*["']which codex["']/);
   });
 });
 
@@ -107,6 +144,25 @@ describe("offerCodexHomeRegistration", () => {
       },
       write: () => {},
     });
+    expect(runs).toEqual([]);
+  });
+
+  it("rejects invalid projectRoot before spawning", async () => {
+    const runs: string[][] = [];
+    await expect(
+      offerCodexHomeRegistration({
+        projectRoot: "/tmp/site\0evil",
+        yes: false,
+        isTTY: true,
+        whichCodex: () => "/usr/bin/codex",
+        prompt: async () => "y",
+        runCommand: async (argv) => {
+          runs.push(argv);
+          return { ok: true, detail: "" };
+        },
+        write: () => {},
+      })
+    ).rejects.toThrow(/projectRoot/i);
     expect(runs).toEqual([]);
   });
 
