@@ -52,70 +52,86 @@ This is an **Agent-native MCP Schema Quality** engineering standard — not a on
 - #58 — agent-readable errors
 - #69 — Contact Form fields shape
 - #90 — MCP Resources (`luno://forms/field-types`, etc.)
-- [mcp#13](https://github.com/luno-cms/mcp/issues/13) — Tool annotations (behavior / governance metadata; parallel contract)
-- [mcp#15](https://github.com/luno-cms/mcp/issues/15) — Tool test coverage baseline (regression protection)
-- [mcp#14](https://github.com/luno-cms/mcp/issues/14) — Setup-path shell hardening (P2, out of this track)
+- [mcp#13](https://github.com/luno-cms/mcp/issues/13) — Tool annotations (**CLOSED** — shipped governance metadata, not a remaining implementation ticket)
+- [mcp#15](https://github.com/luno-cms/mcp/issues/15) — Tool test coverage baseline (**CLOSED**)
+- [mcp#14](https://github.com/luno-cms/mcp/issues/14) — Setup-path shell hardening (**CLOSED**)
 
 ---
 
-## Three complementary contracts (CEO, 2026-08-25)
+## Three complementary contracts (shipped)
 
-`#92` (this document), `mcp#13` (annotations), and `mcp#15` (tests) are **different contracts**. `#92` and `mcp#13` proceed in parallel — neither waits on the other. `mcp#15` is the third layer in the same program; the locked roadmap sequences it after the first `#101` slice.
+`#92` (this document), `mcp#13` (annotations), and `mcp#15` (tests) are **different contracts**. All three are **CLOSED**. Do not reopen them as M8ven follow-ups.
 
-```text
-Foundation Complete
-        ↓
-   #101 Golden Path
-        │
-        ├── #92 Schema / Agent UX
-        │
-        ├── mcp#13 Annotations
-        │
-        └── mcp#15 Test Baseline
-```
+| Layer | Issue | Contract | Status |
+|-------|-------|----------|--------|
+| Schema Quality | luno#92 | Input shape, descriptions, forbidden forms, Resource links — how the agent *fills* a tool | CLOSED |
+| Behavior / Governance metadata | [mcp#13](https://github.com/luno-cms/mcp/issues/13) | `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint` — how the agent *predicts side effects* | CLOSED |
+| Regression protection | [mcp#15](https://github.com/luno-cms/mcp/issues/15) | Per-tool contract / happy path / error behavior | CLOSED |
 
-| Layer | Issue | Contract |
-|-------|-------|----------|
-| Schema Quality | luno#92 | Input shape, descriptions, forbidden forms, Resource links — how the agent *fills* a tool |
-| Behavior / Governance metadata | [mcp#13](https://github.com/luno-cms/mcp/issues/13) | `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint` — how the agent *predicts side effects* before calling |
-| Regression protection | [mcp#15](https://github.com/luno-cms/mcp/issues/15) | Per-tool contract / happy path / error behavior — how we *keep* the first two layers from regressing |
+Annotations are Governance infrastructure (AI agent operates the backend; humans govern). They are not a M8ven workaround. **Do not stamp the same hint values on all 49 tools.**
 
-Annotations are Governance infrastructure for LUNO's product story (AI agent operates the backend; humans govern). They are not a M8ven workaround. **Do not stamp the same hint values on all 49 tools.**
+`mcp#15` is a baseline, not 49/49 E2E. Golden Path harness remains the staging E2E path.
 
-`mcp#15` is a baseline, not 49/49 E2E. Goal: every tool can be continuously verified at contract / happy path / error behavior. Do not force full staging E2E onto every tool (that remains the Golden Path harness).
-
-`mcp#14` is **P2**, separate. The flagged `execSync("which codex")` is a fixed command, no user input, not MCP runtime, setup/CLI only — **not a security vulnerability**. Replace with a library / `spawnSync` API if convenient; do not treat "zero shell" as a P0.
-
-Implementation of `#92` + `mcp#13` + `mcp#15` starts when Foundation is closed and `#101` begins — not before. Current NOW path is unchanged:
-
-```text
-#98 Public Abuse Protection
-        ↓
-#99 Soft-delete Restore
-        ↓
-#100 Project Export
-        ↓
-Foundation Baseline Complete
-        ↓
-#101 Agent Backend Golden Path
-        │
-        ├── #90 Discover
-        ├── #92 Schema / Agent UX
-        ├── mcp#13 Tool Annotations
-        └── #91 Preview / Human Approval / Publish
-        ↓
-mcp#15 Test Coverage
-        ↓
-#93 → #94
-        ↓
-Category Authority
-```
+On Golden Path (#101, CLOSED): treat `mcp#13` as a **shipped MCP contract capability** already in the path — not an issue still to implement.
 
 ---
 
-## External evaluation → engineering roadmap
+## M8ven wrap-up (CEO, 2026-08-26)
 
-The valuable output of the 2026-08-25 M8ven review is the **feedback loop**, not the 74/100 score:
+**Engineering side is done.** Do not file more M8ven-derived product issues.
+
+```text
+M8ven Audit
+    ↓
+Code Audit
+    ↓
+Confirmed / Partial / False Positive
+    ↓
+Issue化
+    ↓
+Implementation
+    ↓
+All M8ven-derived Issues CLOSED
+```
+
+| Issue | What | Status |
+|-------|------|--------|
+| [mcp#13](https://github.com/luno-cms/mcp/issues/13) | Tool Annotations | CLOSED |
+| [mcp#14](https://github.com/luno-cms/mcp/issues/14) | Shell execution audit | CLOSED |
+| [mcp#15](https://github.com/luno-cms/mcp/issues/15) | Tool Test Coverage | CLOSED |
+| [luno#92](https://github.com/luno-cms/luno/issues/92) | Schema Quality | CLOSED |
+
+```text
+M8ven
+├─ Audit                 ✅
+├─ Annotations           ✅
+├─ Schema Quality        ✅
+├─ Test Coverage         ✅
+├─ Shell Audit           ✅
+└─ Re-verify             → optional external verification (not an engineering issue)
+```
+
+What remains is **not** more engineering tickets. It is optional **Verification / Evidence gathering**: re-scan M8ven and record how the external evaluation moved. Do not create an Issue just to chase a score.
+
+### Do not cite the pre-fix snapshot as current quality
+
+The published Trust Index line **74/100 / C / 42 tools** is a snapshot from **before** the `v0.2.31` / 49-tool hardening. **Do not use it as a statement of current LUNO quality.**
+
+Always record **version + commit + timestamp + tool count** as one set.
+
+| Source | Snapshot (record together) |
+|--------|----------------------------|
+| M8ven Trust Index (pre-fix) | 74/100 Code Verified @ [m8ven.ai/mcp/luno-cms-mcp-d3ndif](https://m8ven.ai/mcp/luno-cms-mcp-d3ndif) — **42 tools** — **historical only** |
+| LUNO code audit | **49 tools** @ `@luno-cms/mcp` **v0.2.31** — `luno-cms/mcp` `main`, **2026-08-25** |
+| After mcp#13 / #14 / #15 landed | `@luno-cms/mcp` **v0.2.33+** on `main` — still 49 `registerTool` calls; annotations + setup-path hardening shipped |
+
+If a later re-scan is recorded, add a new dated row. Do not overwrite the historical 74/100 line.
+
+---
+
+## External evaluation loop (still the rule)
+
+Accept nothing from an external scan without verifying current source:
 
 ```text
 External scan (M8ven / Glama / MCP Registry / Benchmark / Security / Golden Path)
@@ -124,26 +140,31 @@ Code audit (read the actual registerTool / handlers)
         ↓
 Confirmed / Partial / False Positive
         ↓
-Existing Issue integration  or  New Issues
+Existing Issue integration  or  New Issues (only if it is a real product gap)
 ```
 
-Accept nothing from an external scan without verifying current source. The same loop applies to every Category Authority signal.
+The same loop applies to every Category Authority signal. After this wrap-up, a new M8ven finding is **not** automatically a new Issue.
 
-### Snapshot hygiene — never mix sources
+---
 
-M8ven reported **42 tools**. This package had **49** `mcp.registerTool` calls at the audit. That is snapshot lag (external index vs current package), not an error in either count.
+## Roadmap after the cut
 
-Always record **version + commit + timestamp + tool count** as one set. Do not collapse an external score and an internal inventory into one number.
-
-| Source | Snapshot (record together) |
-|--------|----------------------------|
-| M8ven Trust Index | 74/100 Code Verified @ [m8ven.ai/mcp/luno-cms-mcp-d3ndif](https://m8ven.ai/mcp/luno-cms-mcp-d3ndif) — **42 tools** in that scan |
-| LUNO code audit | **49 tools** @ `@luno-cms/mcp` **v0.2.31** — `luno-cms/mcp` `main`, **2026-08-25** |
-| This document's repo HEAD when the addendum landed | `@luno-cms/mcp` **v0.2.33** @ `c1e78b3` (2026-08-25) — still 49 `registerTool` calls |
-
-When citing Category Authority later, write two lines:
+M8ven work is closed as a track. The locked Foundation → Golden Path sequence is **already shipped** (do not reopen):
 
 ```text
-M8ven: 74/100 @ snapshot X (42 tools)
-LUNO:  49 tools @ v0.2.31 (2026-08-25 audit)
+#98 Public Abuse Protection          CLOSED
+      ↓
+#99 Soft-delete Restore              CLOSED
+      ↓
+#100 Project Export                  CLOSED
+      ↓
+Foundation Baseline Complete
+      ↓
+#101 Agent Backend Golden Path       CLOSED
+      ├─ #90 Discover                CLOSED
+      ├─ #92 Schema / Agent UX       CLOSED
+      ├─ mcp#13 Annotations          CLOSED (capability in the path, not a TODO)
+      └─ #91 Preview / Approval      CLOSED
 ```
+
+Remaining **open** work in `luno-cms/luno` is not M8ven: #95 hub, #89 epic backlog, #132 Benchmark (optional category evidence), #67 mcp.so listing, #71 OSS decision. Hub: [luno#95](https://github.com/luno-cms/luno/issues/95).
