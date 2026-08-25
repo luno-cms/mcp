@@ -30,6 +30,7 @@ const EXPECTED_TOOLS = [
   "create_entry", // same idempotencyKey → replay same id
   "get_form_set_schema",
   "save_revision",
+  "get_pub_preview_url",
   "publish_revision",
   "get_public_api_info",
   "get_funnel_status",
