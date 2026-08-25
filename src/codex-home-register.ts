@@ -2,7 +2,7 @@
  * Codex ~/.codex registration — setup/CLI only.
  *
  * Threat model:
- * - Not imported by startLunoMcp / stdio server (see setup-import-boundary.test.ts)
+ * - Not imported by startLunoMcp. cli.ts loads this only via dynamic import on `setup`
  * - No shell: `which` via spawnSync argv; `codex mcp add` via spawn({ shell: false })
  * - Interactive consent (TTY + Y/n) before any process is spawned
  * - projectRoot is resolved and rejected (NUL / excessive length) before it is
@@ -25,7 +25,7 @@ export type OfferCodexHomeRegistrationOpts = {
 
 function defaultWhichCodex(): string | null {
   try {
-    const result = spawnSync("which", ["codex"], { encoding: "utf8" });
+    const result = spawnSync("which", ["codex"], { encoding: "utf8", shell: false });
     if (result.status !== 0) return null;
     const found = result.stdout.trim();
     return found || null;

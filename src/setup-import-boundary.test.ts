@@ -41,4 +41,11 @@ describe("stdio server import boundary (mcp#14)", () => {
     });
     expect(hits).toEqual([]);
   });
+
+  it("cli.ts does not statically import the setup path", () => {
+    const src = readFileSync(resolve(srcDir, "cli.ts"), "utf8");
+    expect(src).not.toMatch(/from\s+"\.\/setup\.js"/);
+    expect(src).not.toMatch(/from\s+"\.\/codex-home-register\.js"/);
+    expect(src).toMatch(/import\(\s*"\.\/setup\.js"\s*\)/);
+  });
 });

@@ -63,7 +63,9 @@ describe("production src has no execSync (mcp#14)", () => {
 
   it("detects codex via spawnSync argv, not a shell string", () => {
     const src = readFileSync(join(srcDir, "codex-home-register.ts"), "utf8");
-    expect(src).toMatch(/spawnSync\(\s*["']which["']\s*,\s*\[\s*["']codex["']\s*\]/);
+    expect(src).toMatch(
+      /spawnSync\(\s*["']which["']\s*,\s*\[\s*["']codex["']\s*\]\s*,\s*\{[^}]*shell:\s*false/
+    );
     expect(src).not.toMatch(/spawnSync\(\s*["']which codex["']/);
   });
 });
