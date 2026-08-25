@@ -32,9 +32,10 @@ This is an **Agent-native MCP Schema Quality** engineering standard — not a on
 
 ## Regression
 
-- `pnpm test` — unit tests per schema module + `schema-quality.test.ts`
+- `pnpm test` — unit tests per schema module + `schema-quality.test.ts` + [tool-registry.test.ts](../src/tool-registry.test.ts) (mcp#15 T0–T4)
 - `pnpm golden-path-smoke` — end-to-end against staging (private `luno-cms/luno` CI)
 - Known #69 scenario: Contact Form `fields` vs Form Set `fieldKey` — covered by `contact-form-fields.test.ts` and `form-blueprint-schema.test.ts`
+- Test tier expectations: [TOOL_TESTING.md](./TOOL_TESTING.md)
 
 ## Adding a new tool (release gate)
 
