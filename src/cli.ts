@@ -13,7 +13,6 @@ import {
   applyEnvToProcess,
   resolveMcpProjectRoot,
 } from "./env-files.js";
-import { runSetup } from "./setup.js";
 import { startLunoMcp } from "./server.js";
 
 function printHelp(): void {
@@ -153,6 +152,7 @@ async function main(): Promise<void> {
 
   if (cmd === "setup") {
     const flags = parseSetupFlags(argv.slice(1));
+    const { runSetup } = await import("./setup.js");
     await runSetup({
       projectRoot,
       agent: flags.agent,

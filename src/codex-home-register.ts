@@ -1,4 +1,14 @@
-import { execSync, spawn } from "node:child_process";
+/**
+ * Codex ~/.codex registration — setup/CLI only.
+ *
+ * Threat model:
+ * - Not imported by startLunoMcp. cli.ts loads this only via dynamic import on `setup`
+ * - No shell: `which` via spawnSync argv; `codex mcp add` via spawn({ shell: false })
+ * - Interactive consent (TTY + Y/n) before any process is spawned
+ * - projectRoot is resolved and rejected (NUL / excessive length) before it is
+ *   embedded in `--env LUNO_PROJECT_ROOT=…`
+ */
+import { spawn, spawnSync } from "node:child_process";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { codexMcpAddArgv, formatCodexHomeRegisterHint } from "./agent-configs.js";
@@ -15,8 +25,10 @@ export type OfferCodexHomeRegistrationOpts = {
 
 function defaultWhichCodex(): string | null {
   try {
-    const result = execSync("which codex", { encoding: "utf8" }).trim();
-    return result || null;
+    const result = spawnSync("which", ["codex"], { encoding: "utf8", shell: false });
+    if (result.status !== 0) return null;
+    const found = result.stdout.trim();
+    return found || null;
   } catch {
     return null;
   }
