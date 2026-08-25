@@ -53,10 +53,10 @@ const i18nTextSchema = z.object({
   en: z.string().optional(),
 });
 
-export async function startLunoMcp(): Promise<void> {
+/** Register tools/resources without connecting a transport (mcp#15 tests). */
+export function createLunoMcpServer(): McpServer {
   const apiBase = getLunoApiBase();
   getLunoAgentKey();
-  const funnelId = getMcpFunnelId();
 
   const mcp = new McpServer({ name: "luno", version: "0.2.33" });
   // Soften SDK Zod dumps into actionable agent text (#58).
@@ -1161,6 +1161,13 @@ export async function startLunoMcp(): Promise<void> {
       )
   );
 
+  return mcp;
+}
+
+export async function startLunoMcp(): Promise<void> {
+  const mcp = createLunoMcpServer();
+  const funnelId = getMcpFunnelId();
+  const apiBase = getLunoApiBase();
   // stdio MCP: logs must go to stderr so they don't corrupt the protocol
   console.error(
     `[luno-mcp] ready version=0.2.29 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈46 incl. bulk_create_entries,get_pub_preview_url,get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
