@@ -1,6 +1,27 @@
 /** LUNO 管理 API（`…/admin` を含むベース + Bearer エージェントキー） */
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import { formatLunoApiFailure } from "./agent-errors.js";
+
+export type LunoRequestContext = {
+  apiUrl: string;
+  agentKey: string;
+  funnelId: string;
+  agentRunId?: string | null;
+};
+
+const requestContext = new AsyncLocalStorage<LunoRequestContext>();
+
+export function runWithLunoRequestContext<T>(
+  ctx: LunoRequestContext,
+  fn: () => T
+): T {
+  return requestContext.run({ ...ctx, agentRunId: ctx.agentRunId ?? null }, fn);
+}
+
+function activeContext(): LunoRequestContext | undefined {
+  return requestContext.getStore();
+}
 
 /** MCP プロセス単位の funnel（event-spec）。stdio 再接続で新しい UUID。 */
 let processFunnelId: string | null = null;
@@ -9,6 +30,8 @@ let processFunnelId: string | null = null;
 let activeAgentRunId: string | null = null;
 
 export function getMcpFunnelId(): string {
+  const ctx = activeContext();
+  if (ctx) return ctx.funnelId;
   if (!processFunnelId) {
     processFunnelId = crypto.randomUUID();
   }
@@ -21,10 +44,18 @@ export function resetMcpFunnelIdForTests(): void {
 }
 
 export function setActiveAgentRunId(runId: string | null): void {
-  activeAgentRunId = runId?.trim() || null;
+  const ctx = activeContext();
+  const next = runId?.trim() || null;
+  if (ctx) {
+    ctx.agentRunId = next;
+    return;
+  }
+  activeAgentRunId = next;
 }
 
 export function getActiveAgentRunId(): string | null {
+  const ctx = activeContext();
+  if (ctx) return ctx.agentRunId ?? null;
   return activeAgentRunId;
 }
 
@@ -34,7 +65,8 @@ export function resetActiveAgentRunIdForTests(): void {
 }
 
 export function getLunoApiBase(): string {
-  const raw = (process.env.LUNO_API_URL ?? "").trim().replace(/\/$/, "");
+  const fromCtx = activeContext()?.apiUrl.trim().replace(/\/$/, "");
+  const raw = (fromCtx || process.env.LUNO_API_URL || "").trim().replace(/\/$/, "");
   if (!raw) {
     throw new Error("LUNO_API_URL is required (e.g. http://127.0.0.1:8787/admin)");
   }
@@ -42,7 +74,8 @@ export function getLunoApiBase(): string {
 }
 
 export function getLunoAgentKey(): string {
-  const k = (process.env.LUNO_AGENT_KEY ?? "").trim();
+  const fromCtx = activeContext()?.agentKey.trim();
+  const k = (fromCtx || process.env.LUNO_AGENT_KEY || "").trim();
   if (!k) {
     throw new Error(
       "LUNO_AGENT_KEY is required (sk-agent-… from the LUNO console). Set via `npx @luno-cms/mcp env set-key <env> 'sk-agent-…'` then reconnect MCP. retryable=false"
@@ -59,7 +92,7 @@ function measurementHeaders(): Record<string, string> {
 }
 
 function agentRunHeaders(): Record<string, string> {
-  const id = activeAgentRunId;
+  const id = getActiveAgentRunId();
   return id ? { "X-Agent-Run-Id": id } : {};
 }
 
