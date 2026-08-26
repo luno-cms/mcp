@@ -83,9 +83,9 @@ export const formBlueprintFieldSchema = z
 export const formBlueprintFormSchema = z
   .object({
     key: stableKeySchema.describe("Form block key (nested under blueprint.forms)"),
-    label: z.union([z.string(), z.null()]).optional(),
-    sortOrder: z.number().int().optional(),
-    sort_order: z.number().int().optional(),
+    label: z.union([z.string(), z.null()]).optional().describe("Form block display label"),
+    sortOrder: z.number().int().optional().describe("Form block order"),
+    sort_order: z.number().int().optional().describe("Snake_case alias for sortOrder"),
     fields: z
       .array(formBlueprintFieldSchema)
       .min(1)
@@ -115,21 +115,26 @@ export const formBlueprintSchema = z
     contentListColumns: z
       .array(
         z.object({
-          formKey: z.string(),
-          fieldKey: z.string(),
+          formKey: z.string().describe("Form block key"),
+          fieldKey: z.string().describe("Field key shown as a list column"),
         })
       )
-      .optional(),
+      .optional()
+      .describe("Console entry-list columns"),
     contentSearchColumns: z
       .array(
         z.object({
-          formKey: z.string(),
-          fieldKey: z.string(),
+          formKey: z.string().describe("Form block key"),
+          fieldKey: z.string().describe("Field key included in search"),
         })
       )
-      .optional(),
-    provenance: z.record(z.string(), z.unknown()).optional(),
-    notes: z.array(z.string()).optional(),
+      .optional()
+      .describe("Console entry-search columns"),
+    provenance: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe("Optional origin metadata (not applied as schema)"),
+    notes: z.array(z.string()).optional().describe("Human-readable notes for Console review"),
   })
   .strict()
   .describe(

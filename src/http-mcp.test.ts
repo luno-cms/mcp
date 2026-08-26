@@ -9,14 +9,115 @@ describe("handleMcpHttpRequest", () => {
     else process.env.LUNO_API_URL = prevUrl;
   });
 
-  it("returns 401 when Authorization is missing", async () => {
+  it("returns 401 when Authorization is missing on tools/call", async () => {
     process.env.LUNO_API_URL = "https://stg-api.luno.rest/admin";
     const res = await handleMcpHttpRequest(
-      new Request("http://127.0.0.1/mcp", { method: "POST" })
+      new Request("http://127.0.0.1/mcp", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "get_project_overview", arguments: {} },
+        }),
+      })
     );
     expect(res.status).toBe(401);
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe("UNAUTHORIZED");
+  });
+
+  it("allows initialize without Authorization so Smithery can scan", async () => {
+    process.env.LUNO_API_URL = "https://stg-api.luno.rest/admin";
+    const res = await handleMcpHttpRequest(
+      new Request("http://127.0.0.1/mcp", {
+        method: "POST",
+        headers: {
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "smithery-scan", version: "0" },
+          },
+        }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      result?: { serverInfo?: { name?: string } };
+    };
+    expect(body.result?.serverInfo?.name).toBe("luno");
+  });
+
+  it("accepts a raw sk-agent key on Authorization without Bearer", async () => {
+    const res = await handleMcpHttpRequest(
+      new Request("http://127.0.0.1/mcp", {
+        method: "POST",
+        headers: {
+          authorization: "sk-agent-x",
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "get_project_overview", arguments: {} },
+        }),
+      }),
+      {
+        apiUrl: "https://stg-api.luno.rest/admin",
+        fetch: async () =>
+          new Response(JSON.stringify({ projectId: "raw-header" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+      }
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      result?: { content?: Array<{ text?: string }> };
+    };
+    expect(body.result?.content?.[0]?.text).toContain("raw-header");
+  });
+
+  it("accepts LUNO_AGENT_KEY when Authorization is reserved by a gateway", async () => {
+    const res = await handleMcpHttpRequest(
+      new Request("http://127.0.0.1/mcp", {
+        method: "POST",
+        headers: {
+          luno_agent_key: "sk-agent-x",
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "get_project_overview", arguments: {} },
+        }),
+      }),
+      {
+        apiUrl: "https://stg-api.luno.rest/admin",
+        fetch: async () =>
+          new Response(JSON.stringify({ projectId: "alt-header" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+      }
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      result?: { content?: Array<{ text?: string }> };
+    };
+    expect(body.result?.content?.[0]?.text).toContain("alt-header");
   });
 
   it("uses opts.apiUrl so the Worker can point at itself", async () => {

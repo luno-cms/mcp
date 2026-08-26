@@ -18,6 +18,12 @@ import { startLunoMcp } from "./server.js";
 function printHelp(): void {
   console.log(`Usage: luno-mcp <command> [args]
 
+Required env (secrets stay required; do not omit for directory scores):
+  LUNO_API_URL           Admin API base ending in /admin
+                         e.g. https://api.luno.rest/admin
+  LUNO_AGENT_KEY         Secret sk-agent-… from Console → MCP / API / Hook → API / MCP
+  LUNO_FUNNEL_ID         Optional measurement funnel UUID
+
 Commands:
   (default)              Start MCP server (uses LUNO_API_URL / LUNO_AGENT_KEY)
   run <env>              Start MCP with .agents/luno/<env>.env (dev|stg|prod)

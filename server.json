@@ -6,12 +6,12 @@
     "url": "https://github.com/luno-cms/mcp",
     "source": "github"
   },
-  "version": "0.2.35",
+  "version": "0.2.36",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@luno-cms/mcp",
-      "version": "0.2.35",
+      "version": "0.2.36",
       "transport": {
         "type": "stdio"
       },
@@ -24,7 +24,7 @@
           "name": "LUNO_API_URL"
         },
         {
-          "description": "LUNO agent API key (sk-agent-…), issued in Console under Settings → Agent API Keys",
+          "description": "Required secret. Agent API key (sk-agent-…) from LUNO Console → MCP / API / Hook → API / MCP",
           "isRequired": true,
           "format": "string",
           "isSecret": true,

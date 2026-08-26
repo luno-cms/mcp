@@ -31,6 +31,20 @@ function tempProject(): string {
   return d;
 }
 
+it("formatEnvFile documents required secret fields", async () => {
+  const { formatEnvFile } = await import("./env-files.js");
+  const text = formatEnvFile({
+    LUNO_API_URL: "https://api.luno.rest/admin",
+    LUNO_AGENT_KEY: "sk-agent-abc",
+  });
+  expect(text).toMatch(/Required secret/);
+  expect(text).toMatch(/MCP \/ API \/ Hook/);
+  expect(parseEnvFile(text)).toEqual({
+    LUNO_API_URL: "https://api.luno.rest/admin",
+    LUNO_AGENT_KEY: "sk-agent-abc",
+  });
+});
+
 it("resolveMcpProjectRoot prefers LUNO_PROJECT_ROOT", () => {
   expect(resolveMcpProjectRoot("/tmp/cwd", { LUNO_PROJECT_ROOT: "/abs/site" })).toBe("/abs/site");
   expect(resolveMcpProjectRoot("/tmp/cwd", {})).toBe("/tmp/cwd");

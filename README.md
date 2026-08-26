@@ -16,7 +16,7 @@ LUNO is a hosted backend platform — not a website builder, not an open-source 
 npx @luno-cms/mcp setup
 ```
 
-Works with **Claude Code**, **Cursor**, and **Codex**. Issue an agent key in the LUNO Console → Settings → Agent API keys.
+Works with **Claude Code**, **Cursor**, and **Codex**. Issue an agent key in the LUNO Console → **MCP / API / Hook** → **API / MCP**.
 
 > **Glama / MCP directory:** “Install Server” requires a hosted API key and may show *This server cannot be installed*. Use `npx @luno-cms/mcp setup` instead — see [Quick start (recommended)](#quick-start-recommended) below.
 
