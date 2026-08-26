@@ -3,11 +3,18 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { formatLunoApiFailure } from "./agent-errors.js";
 
+/** Hosted Worker は公開 origin への自己 fetch（522）を避けるためこれを渡す。 */
+export type LunoFetch = (
+  input: RequestInfo | URL,
+  init?: RequestInit
+) => Promise<Response>;
+
 export type LunoRequestContext = {
   apiUrl: string;
   agentKey: string;
   funnelId: string;
   agentRunId?: string | null;
+  fetch?: LunoFetch;
 };
 
 const requestContext = new AsyncLocalStorage<LunoRequestContext>();
@@ -84,6 +91,10 @@ export function getLunoAgentKey(): string {
   return k;
 }
 
+function getLunoFetch(): LunoFetch {
+  return activeContext()?.fetch ?? globalThis.fetch;
+}
+
 function measurementHeaders(): Record<string, string> {
   return {
     "X-Luno-Funnel-Id": getMcpFunnelId(),
@@ -128,7 +139,7 @@ export async function lunoJson(
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(opts.json);
   }
-  const res = await fetch(url, {
+  const res = await getLunoFetch()(url, {
     method: opts?.method ?? "GET",
     headers,
     body,
@@ -145,7 +156,7 @@ export async function lunoFormData(
   const base = getLunoApiBase();
   const key = getLunoAgentKey();
   const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
-  const res = await fetch(url, {
+  const res = await getLunoFetch()(url, {
     method: opts?.method ?? "POST",
     headers: {
       Authorization: `Bearer ${key}`,

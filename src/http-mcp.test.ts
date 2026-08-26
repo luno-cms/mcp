@@ -28,6 +28,39 @@ describe("handleMcpHttpRequest", () => {
     expect(res.status).toBe(401);
   });
 
+  it("forwards opts.fetch so hosted tools skip the public origin", async () => {
+    const res = await handleMcpHttpRequest(
+      new Request("http://127.0.0.1/mcp", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer sk-agent-x",
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "get_project_overview", arguments: {} },
+        }),
+      }),
+      {
+        apiUrl: "https://stg-api.luno.rest/admin",
+        fetch: async () =>
+          new Response(JSON.stringify({ projectId: "in-process" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+      }
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      result?: { isError?: boolean; content?: Array<{ text?: string }> };
+    };
+    expect(body.result?.isError).not.toBe(true);
+    expect(body.result?.content?.[0]?.text).toContain("in-process");
+  });
+
   it("returns 204 on CORS preflight", async () => {
     const res = await handleMcpHttpRequest(
       new Request("http://127.0.0.1/mcp", { method: "OPTIONS" })
