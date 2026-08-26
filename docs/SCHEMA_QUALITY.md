@@ -108,10 +108,27 @@ M8ven
 ├─ Schema Quality        ✅
 ├─ Test Coverage         ✅
 ├─ Shell Audit           ✅
-└─ Re-verify             → optional external verification (not an engineering issue)
+├─ Publisher Verified    ✅  commonld.com (@luno-cms)  — 2026-08-26
+├─ Live Monitored        ✅  every push re-verified
+└─ Score / Grade refresh → automatic on next snapshot (do not chase)
 ```
 
-What remains is **not** more engineering tickets. It is optional **Verification / Evidence gathering**: re-scan M8ven and record how the external evaluation moved. Do not create an Issue just to chase a score.
+This is not “listed on M8ven.” It is a **continuous external Trust Layer**: M8ven confirmed LUNO as the official publisher and re-verifies on every GitHub push.
+
+```text
+LUNO
+ │
+ ├─ Open Source / README       ✅
+ ├─ Code Verified              ✅
+ ├─ Publisher Verified         ✅
+ └─ Live Monitored             ✅
+        │
+        └─ every GitHub push → re-verify
+```
+
+Use this chain as **external evidence** for *AI agents build and operate production backends, humans govern*. Do **not** put **74/100** in current marketing. M8ven states **new projects cap at C until adoption is earned** — Grade C is not a statement of current code quality.
+
+On-screen Quality Suggestions (annotations, hints, input validation, test coverage, shell execution) are **the previous snapshot**. mcp#13 / #14 / #15 and luno#92 already closed those. **Do not implement more from the stale 74/C screen.** Live Monitored will pick up shipped fixes on the next snapshot.
 
 ### Do not cite the pre-fix snapshot as current quality
 
@@ -121,7 +138,8 @@ Always record **version + commit + timestamp + tool count** as one set.
 
 | Source | Snapshot (record together) |
 |--------|----------------------------|
-| M8ven Trust Index (pre-fix) | 74/100 Code Verified @ [m8ven.ai/mcp/luno-cms-mcp-d3ndif](https://m8ven.ai/mcp/luno-cms-mcp-d3ndif) — **42 tools** — **historical only** |
+| M8ven Trust Index (pre-fix score) | 74/100 · Grade C / Emerging @ [m8ven.ai/mcp/luno-cms-mcp-d3ndif](https://m8ven.ai/mcp/luno-cms-mcp-d3ndif) — **42 tools** — **historical score only** |
+| M8ven publisher / monitor (2026-08-26) | **Publisher Verified** `commonld.com (@luno-cms)` · **Live Monitored** (0 days · every push re-verified) — **current trust signals** |
 | LUNO code audit | **49 tools** @ `@luno-cms/mcp` **v0.2.31** — `luno-cms/mcp` `main`, **2026-08-25** |
 | After mcp#13 / #14 / #15 landed | `@luno-cms/mcp` **v0.2.33+** on `main` — still 49 `registerTool` calls; annotations + setup-path hardening shipped |
 
