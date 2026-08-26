@@ -99,8 +99,16 @@ export function parseEnvFile(contents: string): Record<string, string> {
 }
 
 export function formatEnvFile(vars: Record<string, string>): string {
+  const comments: Record<string, string> = {
+    LUNO_API_URL: "# Required. Admin API base ending in /admin",
+    LUNO_AGENT_KEY:
+      "# Required secret. sk-agent-… from Console → MCP / API / Hook → API / MCP. Never optional.",
+  };
   return Object.entries(vars)
-    .map(([k, v]) => `${k}=${v}`)
+    .map(([k, v]) => {
+      const comment = comments[k];
+      return comment ? `${comment}\n${k}=${v}` : `${k}=${v}`;
+    })
     .join("\n")
     .concat("\n");
 }

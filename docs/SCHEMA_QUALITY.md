@@ -58,6 +58,18 @@ This is an **Agent-native MCP Schema Quality** engineering standard — not a on
 
 ---
 
+## Output contract (Agent chaining)
+
+Input quality (#92) is necessary but not sufficient. Tools now also advertise `outputSchema` and return `structuredContent` next to the existing `content[0].text` JSON.
+
+- Module: [`src/mcp-output-schemas.ts`](../src/mcp-output-schemas.ts)
+- Tests: [`src/mcp-contract-quality.test.ts`](../src/mcp-contract-quality.test.ts)
+- Inventory / naming / config: [AGENT_UX_AUDIT.md](./AGENT_UX_AUDIT.md)
+
+Do **not** stamp `z.unknown()` as the whole output. Do **not** drop text for structured-only. Do **not** rename tools to chase directory scores.
+
+---
+
 ## Three complementary contracts (shipped)
 
 `#92` (this document), `mcp#13` (annotations), and `mcp#15` (tests) are **different contracts**. All three are **CLOSED**. Do not reopen them as M8ven follow-ups.

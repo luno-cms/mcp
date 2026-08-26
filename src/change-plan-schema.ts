@@ -9,19 +9,41 @@ export const changePlanActionSchema = z.enum([
 ]);
 
 export const changePlanDryRunSchema = z.object({
-  status: z.enum(["ok", "error", "warning"]),
-  changes: z.array(z.unknown()).optional(),
-  raw: z.record(z.string(), z.unknown()),
+  status: z.enum(["ok", "error", "warning"]).describe("Preview outcome from the prior apply_* dryRun"),
+  changes: z
+    .array(z.unknown())
+    .optional()
+    .describe("Optional summarized diffs from dryRun"),
+  raw: z
+    .record(z.string(), z.unknown())
+    .describe("Verbatim apply_* dryRun JSON stored for human review"),
 });
 
 export const changePlanStepSchema = z.object({
-  action: changePlanActionSchema,
-  resource_type: z.string().max(64).optional(),
-  resource_id: z.string().max(128).optional(),
+  action: changePlanActionSchema.describe(
+    "apply_form_blueprint | apply_builtin_form_template | apply_master_blueprint"
+  ),
+  resource_type: z
+    .string()
+    .max(64)
+    .optional()
+    .describe("Optional resource kind for Console (e.g. form_set)"),
+  resource_id: z
+    .string()
+    .max(128)
+    .optional()
+    .describe("Optional existing resource id this step targets"),
   mutation: z
     .object({
-      body: z.record(z.string(), z.unknown()),
-      templateSlug: z.string().min(1).max(63).optional(),
+      body: z
+        .record(z.string(), z.unknown())
+        .describe("Execution body for Human approval (dryRun must be absent/false)"),
+      templateSlug: z
+        .string()
+        .min(1)
+        .max(63)
+        .optional()
+        .describe("Builtin template slug when action is apply_builtin_form_template"),
     })
     .optional()
     .describe("Execution payload (required for human approval). dryRun must be false/absent."),
@@ -31,9 +53,9 @@ export const changePlanStepSchema = z.object({
 });
 
 export const changePlanImpactSchema = z.object({
-  kind: z.string().min(1).max(64),
-  label: z.string().min(1).max(200),
-  delta: z.string().min(1).max(500),
+  kind: z.string().min(1).max(64).describe("Impact category key"),
+  label: z.string().min(1).max(200).describe("Human-readable impact label"),
+  delta: z.string().min(1).max(500).describe("What changes if the plan is approved"),
 });
 
 export const proposeChangeInputSchema = z.object({

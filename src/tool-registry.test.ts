@@ -182,7 +182,15 @@ describe("MCP tool handlers T2/T3/T4 (mcp#15)", () => {
   beforeEach(async () => {
     lunoJson.mockReset();
     lunoFormData.mockReset();
-    lunoJson.mockResolvedValue({ ok: true });
+    lunoJson.mockResolvedValue({
+      ok: true,
+      id: FS,
+      slug: "mock",
+      name: "mock",
+      status: "draft",
+      revision: 1,
+      items: [],
+    });
     lunoFormData.mockResolvedValue({ id: RECORD });
     resetActiveAgentRunIdForTests();
     const pair = await connectClient();
@@ -379,7 +387,24 @@ describe("MCP tool handlers T2/T3/T4 (mcp#15)", () => {
     for (const c of mutatingCases) {
       lunoJson.mockClear();
       lunoFormData.mockClear();
-      lunoJson.mockResolvedValue({ ok: true, id: ENTRY, agentRun: { id: RUN } });
+      if (c.name === "save_revision") {
+        lunoJson.mockResolvedValue({ id: REV, revision: 1, status: "draft" });
+      } else if (c.name === "publish_revision") {
+        lunoJson.mockResolvedValue({
+          steps: ["submit_for_review"],
+          pendingHumanApproval: false,
+          revision: { id: REV, revision: 1, status: "published" },
+        });
+      } else {
+        lunoJson.mockResolvedValue({
+          ok: true,
+          id: ENTRY,
+          status: "ok",
+          items: [],
+          agentRun: { id: RUN },
+          changePlan: { id: RUN, status: "pending_approval" },
+        });
+      }
       const result = await callTool(c.name, c.args);
       if (result.isError) {
         failures.push(`${c.name}: tool error ${JSON.stringify(result.content)}`);

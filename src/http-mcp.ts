@@ -2,7 +2,9 @@
  * Streamable HTTP front door for hosted MCP (luno#133 v1).
  * Workers-safe: no node:http. Node listener lives in http-mcp-node.ts.
  *
- * Auth is per request (`Authorization: Bearer sk-agent-…`).
+ * Tool calls need a per-request agent key (`Authorization` or `LUNO_AGENT_KEY`).
+ * Discovery (`initialize`, `tools/list`, …) is public so directories can scan
+ * without treating 401 as OAuth (Smithery reserves `Authorization` for OAuth).
  * Admin API base: opts.apiUrl or LUNO_API_URL.
  * Public path: /mcp on api.luno.rest (no mcp.luno.rest in v1).
  */
@@ -12,9 +14,21 @@ import { createLunoMcpServer } from "./server.js";
 
 const CORS: Record<string, string> = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "Authorization, Content-Type, Accept, Mcp-Session-Id",
+  "access-control-allow-headers":
+    "Authorization, Content-Type, Accept, Mcp-Session-Id, LUNO_AGENT_KEY, X-Luno-Agent-Key",
   "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
 };
+
+/** Methods that do not touch Admin / tenant data. */
+const MCP_DISCOVERY_METHODS = new Set([
+  "initialize",
+  "notifications/initialized",
+  "ping",
+  "tools/list",
+  "resources/list",
+  "resources/templates/list",
+  "prompts/list",
+]);
 
 export type HandleMcpHttpOptions = {
   /** Override Admin API base (Worker mount uses `${origin}/admin`). */
@@ -23,11 +37,37 @@ export type HandleMcpHttpOptions = {
   fetch?: LunoFetch;
 };
 
+function stripBearerPrefixes(raw: string): string {
+  let value = raw.trim();
+  while (/^bearer\s+/i.test(value)) {
+    value = value.replace(/^bearer\s+/i, "").trim();
+  }
+  return value;
+}
+
+/** `Authorization: Bearer …`, raw `sk-agent-…`, or `LUNO_AGENT_KEY`. */
 export function extractBearerToken(request: Request): string | null {
-  const raw = request.headers.get("authorization") ?? "";
-  const match = /^Bearer\s+(\S+)/i.exec(raw);
-  const token = match?.[1]?.trim() ?? "";
-  return token || null;
+  for (const name of ["authorization", "luno_agent_key", "x-luno-agent-key"]) {
+    const raw = request.headers.get(name);
+    if (!raw) continue;
+    const token = stripBearerPrefixes(raw);
+    if (token) return token;
+  }
+  return null;
+}
+
+async function peekMcpMethod(request: Request): Promise<string | null> {
+  if (request.method !== "POST") return null;
+  try {
+    const body: unknown = await request.clone().json();
+    if (body && typeof body === "object" && "method" in body) {
+      const method = (body as { method?: unknown }).method;
+      return typeof method === "string" ? method : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 function jsonError(status: number, code: string, message: string): Response {
@@ -52,7 +92,9 @@ export async function handleMcpHttpRequest(
   }
 
   const agentKey = extractBearerToken(request);
-  if (!agentKey) {
+  const method = await peekMcpMethod(request);
+  const isDiscovery = method !== null && MCP_DISCOVERY_METHODS.has(method);
+  if (!agentKey && !isDiscovery) {
     return jsonError(401, "UNAUTHORIZED", "Authorization: Bearer sk-agent-… is required");
   }
 
@@ -62,7 +104,12 @@ export async function handleMcpHttpRequest(
   }
 
   return runWithLunoRequestContext(
-    { apiUrl, agentKey, funnelId: crypto.randomUUID(), fetch: opts?.fetch },
+    {
+      apiUrl,
+      agentKey: agentKey ?? "sk-agent-public-discovery",
+      funnelId: crypto.randomUUID(),
+      fetch: opts?.fetch,
+    },
     async () => {
       const mcp = createLunoMcpServer();
       const transport = new WebStandardStreamableHTTPServerTransport({

@@ -29,7 +29,10 @@ export const masterBlueprintEntitySchema = z
   .object({
     key: stableKeySchema,
     name: z.string().min(1).max(500).describe("Master display name"),
-    description: z.union([z.string(), z.null()]).optional(),
+    description: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe("Master entity description"),
     hierarchical: z.boolean().optional().describe("true for parent/child records"),
     records: z
       .array(masterBlueprintRecordSchema)

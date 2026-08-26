@@ -2,7 +2,7 @@
 
 Per-tool contract tests — not 49× staging E2E. Golden Path harness remains [RELIABILITY-HARNESS.md](./RELIABILITY-HARNESS.md).
 
-Manifest: `src/tool-registry.ts`. Runner: `src/tool-registry.test.ts`.
+Manifest: `src/tool-registry.ts`. Runner: `src/tool-registry.test.ts`. Output contracts: `src/mcp-output-schemas.ts` + `src/mcp-contract-quality.test.ts`.
 
 ## Tiers
 
@@ -13,6 +13,7 @@ Manifest: `src/tool-registry.ts`. Runner: `src/tool-registry.test.ts`.
 | T2 Handler | `mutates: true` | Mocked `lunoJson` / `lunoFormData` is called with the expected path + method |
 | T3 Error | `validation: true` (≥15) | Invalid args → MCP error (`isError`) |
 | T4 Safety | `safety: true` | `archive_form_set` dryRun/confirmToken; `publish_revision` `/publish`; `propose_change` does not apply; IP delete uses DELETE |
+| T5 Contract | All 49 | Every input property has `description`; every tool has `outputSchema`; representative Golden Path tools return `structuredContent` that parses |
 
 ## Adding a tool
 
