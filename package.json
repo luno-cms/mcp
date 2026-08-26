@@ -37,6 +37,13 @@
   "bin": {
     "luno-mcp": "./dist/cli.js"
   },
+  "exports": {
+    ".": "./dist/cli.js",
+    "./http": {
+      "types": "./dist/http-mcp.d.ts",
+      "import": "./dist/http-mcp.js"
+    }
+  },
   "files": [
     "dist",
     "templates",

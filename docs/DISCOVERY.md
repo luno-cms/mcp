@@ -34,11 +34,17 @@ Free review queue: open a GitHub issue on [`chatmcp/mcpso`](https://github.com/c
 
 Paid instant path (optional): [mcp.so/submit?type=server](https://mcp.so/submit?type=server) ($39).
 
-## Smithery / hosted HTTPS (not now)
+## Smithery / hosted HTTPS
 
-Smithery’s “MCP Server URL” form expects **Streamable HTTP**. This package is **stdio only** (`npx @luno-cms/mcp`). There is no `https://…/mcp` to paste.
+Smithery’s “MCP Server URL” form expects **Streamable HTTP**.
 
-**Do not add a public HTTP endpoint just to list on Smithery.** Listing path remains npm + Official Registry + MCPB. Hosted Remote MCP (OAuth, tenant isolation, audit, human approval) is the next **product** milestone in `luno-cms/luno` — [luno#133](https://github.com/luno-cms/luno/issues/133) — and is **not started**.
+**v1 (luno#133):** `npx @luno-cms/mcp serve-http` — Streamable HTTP + `Authorization: Bearer sk-agent-…`. Session keys are isolated (not process env). **No new subdomain.** Production target is `https://stg-api.luno.rest/mcp` / `https://api.luno.rest/mcp` on the existing API Worker (not `mcp.luno.rest` yet). OAuth / SSO is a later slice.
+
+```bash
+LUNO_API_URL=https://stg-api.luno.rest/admin npx @luno-cms/mcp serve-http --port 3333
+# client: POST http://127.0.0.1:3333/mcp
+# header: Authorization: Bearer sk-agent-…
+```
 
 ## Publish flow (npm + Registry)
 

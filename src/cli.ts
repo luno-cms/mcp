@@ -21,6 +21,7 @@ function printHelp(): void {
 Commands:
   (default)              Start MCP server (uses LUNO_API_URL / LUNO_AGENT_KEY)
   run <env>              Start MCP with .agents/luno/<env>.env (dev|stg|prod)
+  serve-http [--port N]  Streamable HTTP MCP (Bearer sk-agent-…). Default 127.0.0.1:3333
   setup [--agent NAME]   Register skill + MCP for one agent in this project
   env bootstrap          Create .agents/luno/{dev,stg,prod}.env if missing
   env status             Show active env and key status
@@ -139,6 +140,17 @@ async function main(): Promise<void> {
 
   if (cmd === "help" || cmd === "-h" || cmd === "--help") {
     printHelp();
+    return;
+  }
+
+  if (cmd === "serve-http") {
+    const portFlag = argv.indexOf("--port");
+    const port = portFlag >= 0 ? Number(argv[portFlag + 1]) : undefined;
+    if (portFlag >= 0 && (!port || Number.isNaN(port))) {
+      throw new Error("serve-http --port requires a number");
+    }
+    const { startMcpHttpServer } = await import("./http-mcp-node.js");
+    startMcpHttpServer({ port });
     return;
   }
 
