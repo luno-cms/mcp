@@ -58,7 +58,7 @@ export function createLunoMcpServer(): McpServer {
   const apiBase = getLunoApiBase();
   getLunoAgentKey();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.33" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.34" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
