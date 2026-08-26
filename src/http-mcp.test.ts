@@ -19,6 +19,15 @@ describe("handleMcpHttpRequest", () => {
     expect(body.error.code).toBe("UNAUTHORIZED");
   });
 
+  it("uses opts.apiUrl so the Worker can point at itself", async () => {
+    delete process.env.LUNO_API_URL;
+    const res = await handleMcpHttpRequest(
+      new Request("http://127.0.0.1/mcp", { method: "POST" }),
+      { apiUrl: "https://stg-api.luno.rest/admin" }
+    );
+    expect(res.status).toBe(401);
+  });
+
   it("returns 204 on CORS preflight", async () => {
     const res = await handleMcpHttpRequest(
       new Request("http://127.0.0.1/mcp", { method: "OPTIONS" })

@@ -149,7 +149,7 @@ async function main(): Promise<void> {
     if (portFlag >= 0 && (!port || Number.isNaN(port))) {
       throw new Error("serve-http --port requires a number");
     }
-    const { startMcpHttpServer } = await import("./http-mcp.js");
+    const { startMcpHttpServer } = await import("./http-mcp-node.js");
     startMcpHttpServer({ port });
     return;
   }
