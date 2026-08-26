@@ -3,6 +3,7 @@ import {
   getLunoAgentKey,
   getLunoApiBase,
   getMcpFunnelId,
+  lunoJson,
   resetMcpFunnelIdForTests,
   runWithLunoRequestContext,
 } from "./luno-api.js";
@@ -50,5 +51,31 @@ describe("LUNO request context (hosted HTTP)", () => {
       ),
     ]);
     expect(seen.sort()).toEqual(["sk-agent-a", "sk-agent-b"]);
+  });
+
+  it("lunoJson uses context.fetch instead of the public origin", async () => {
+    const seen: string[] = [];
+    await runWithLunoRequestContext(
+      {
+        apiUrl: "https://stg-api.luno.rest/admin",
+        agentKey: "sk-agent-session",
+        funnelId: "funnel-fetch",
+        fetch: async (input) => {
+          const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+          seen.push(url);
+          return new Response(JSON.stringify({ ok: true, via: "in-process" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
+        },
+      },
+      async () => {
+        await expect(lunoJson("/v1/project-overview")).resolves.toEqual({
+          ok: true,
+          via: "in-process",
+        });
+      }
+    );
+    expect(seen).toEqual(["https://stg-api.luno.rest/admin/v1/project-overview"]);
   });
 });

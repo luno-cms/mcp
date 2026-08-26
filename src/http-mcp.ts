@@ -7,7 +7,7 @@
  * Public path: /mcp on api.luno.rest (no mcp.luno.rest in v1).
  */
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { runWithLunoRequestContext } from "./luno-api.js";
+import { runWithLunoRequestContext, type LunoFetch } from "./luno-api.js";
 import { createLunoMcpServer } from "./server.js";
 
 const CORS: Record<string, string> = {
@@ -19,6 +19,8 @@ const CORS: Record<string, string> = {
 export type HandleMcpHttpOptions = {
   /** Override Admin API base (Worker mount uses `${origin}/admin`). */
   apiUrl?: string;
+  /** In-process Admin dispatch for the same Worker (avoids public-origin 522). */
+  fetch?: LunoFetch;
 };
 
 export function extractBearerToken(request: Request): string | null {
@@ -60,7 +62,7 @@ export async function handleMcpHttpRequest(
   }
 
   return runWithLunoRequestContext(
-    { apiUrl, agentKey, funnelId: crypto.randomUUID() },
+    { apiUrl, agentKey, funnelId: crypto.randomUUID(), fetch: opts?.fetch },
     async () => {
       const mcp = createLunoMcpServer();
       const transport = new WebStandardStreamableHTTPServerTransport({
