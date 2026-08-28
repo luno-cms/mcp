@@ -102,9 +102,9 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 
 ## Form Set archive (soft-delete)
 
-Agents: \`archive_form_set\` with \`dryRun\` → \`confirmToken\` → execute. Not hard delete.
+Agents: \`archive_form_set\` with \`dryRun\` → \`confirmToken\` → execute. Not hard delete. Do not archive to change field types (\`textarea\`→\`tiptap\` is \`apply_form_blueprint\` migrate).
 
-Restore archived Form Sets / deleted entries: **human Console or Admin API only** (not MCP).
+Restore archived Form Sets: **human Console or Admin API only**. Agent restore is 403 (\`reason: restore_requires_human_jwt\`). Archive responses include machine-readable \`restore\` (\`consolePath\` \`/form-sets/archived\`, \`POST /admin/v1/form-sets/{formSetId}/restore\`, help \`form-set.soft-delete-restore\`). Widgets are not restored.
 `;
 
 const PUBLISHING_GUIDE_BODY = `# LUNO publishing guide
@@ -173,7 +173,7 @@ Masters need separate \`site_published_at\` / \`apply_master_blueprint\` with \`
 ## Undo / recovery
 
 - Body mistakes: \`list_revisions\` → \`save_revision\` with older snapshot → \`publish_revision\`
-- Archive Form Set: \`archive_form_set\` (soft). Restore: human only.
+- Archive Form Set: \`archive_form_set\` (soft, mistaken creates only). Restore: human only (403 for agents; see \`restore\` on archive response).
 - Hard delete: not available to agents.
 
 See resource \`luno://permissions\` and admin-help \`agent.undo-recovery\` via \`search_admin_help\`.
@@ -193,7 +193,7 @@ Legacy \`schema\` scope = same as \`full\` for existing keys.
 ## Agents cannot
 
 - Hard-delete Form Sets (\`DELETE\` blocked)
-- Restore archived Form Sets or deleted entries (tenant_admin human JWT only)
+- Restore archived Form Sets or deleted entries (tenant_admin human JWT only; 403 \`restore_requires_human_jwt\`)
 - Delete Contact Forms
 - Bulk-delete entries
 - Update/delete master records directly (\`update_master_record\` → 401; use \`apply_master_blueprint\`)
@@ -204,6 +204,7 @@ Legacy \`schema\` scope = same as \`full\` for existing keys.
 - Soft-delete (\`deleted_at\`), not hard delete
 - Agent execute requires \`dryRun: true\` first → use returned \`confirmToken\` within 10 minutes
 - Human JWT archive/delete does not need token
+- Restore is human JWT only. Agent \`POST .../restore\` → 403 \`restore_requires_human_jwt\`. Read \`restore\` on the archive response (console path, API, constraints). Do not archive to change field types.
 
 ## Publish gate
 
