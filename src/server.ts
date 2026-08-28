@@ -403,10 +403,15 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.apply_form_blueprint,
       outputSchema: TOOL_OUTPUT_SCHEMAS.apply_form_blueprint,
       description:
-        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。先に dryRun: true 推奨。詳細: agent.form-blueprint-mcp, luno://content/schema-guide。誤った Form Set は archive_form_set（soft-delete）。",
+        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed を見る。新規 slug のみ create 成功。既存 Form Set は status=unsupported（型変更は field_type_change_not_supported）。execute は 409 FORM_SET_CONFLICT。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成は archive_form_set。",
       inputSchema: {
         blueprint: formBlueprintSchema,
-        dryRun: z.boolean().optional().describe("true で適用せずプレビュー"),
+        dryRun: z
+          .boolean()
+          .optional()
+          .describe(
+            "true で適用せず実行可能性を検証。ok+wouldSucceed のときだけ本実行。既存 slug は unsupported"
+          ),
         idempotencyKey: z.string().optional().describe("冪等キー（異なる引数での再送は409 IDEMPOTENCY_KEY_CONFLICT。24時間で失効）"),
       },
     },
