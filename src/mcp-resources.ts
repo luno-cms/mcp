@@ -94,8 +94,8 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 
 ## Create structure (agents)
 
-- New Form Set from template: \`apply_builtin_form_template\` (\`dryRun: true\` first)
-- Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first)
+- New Form Set from template: \`apply_builtin_form_template\` (\`dryRun: true\` first; only if status=ok)
+- Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). Existing slug → unsupported, not create. Field type changes are not supported.
 - Masters: \`apply_master_blueprint\`
 
 **IDs:** MCP tools use UUIDs (\`formSetId\`, \`entryId\`). Public API uses slugs.
