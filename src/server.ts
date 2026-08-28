@@ -403,7 +403,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.apply_form_blueprint,
       outputSchema: TOOL_OUTPUT_SCHEMAS.apply_form_blueprint,
       description:
-        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind を見る。新規 slug は kind=create。既存の textarea→tiptap は kind=migrate（preview を見てから execute。変換不能は field_type_migration_blocked）。許可外の型変更は unsupported。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成は archive_form_set。",
+        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind を見る。新規 slug は kind=create。既存の textarea→tiptap は kind=migrate（preview を見てから execute。変換不能は field_type_migration_blocked）。許可外の型変更は unsupported（新 field へ移行。型変更のために archive しない）。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成の後始末だけ archive_form_set。",
       inputSchema: {
         blueprint: formBlueprintSchema,
         dryRun: z
@@ -434,7 +434,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.archive_form_set,
       outputSchema: TOOL_OUTPUT_SCHEMAS.archive_form_set,
       description:
-        "Form Set をアーカイブ（soft-delete / deleted_at。schema/full）。hard delete ではない。必須: formSetId。エージェントは先に dryRun: true で slug / entryCount / confirmToken を取得し、本実行で confirmToken を渡す（トークンなしは 400）。人間の Console DELETE は従来どおり。Contact Form は削除不可。restore API は未提供。詳細: agent.undo-recovery / agent.mcp-security-permissions",
+        "Form Set をアーカイブ（soft-delete / deleted_at。schema/full）。hard delete ではない。必須: formSetId。エージェントは先に dryRun: true で slug / entryCount / confirmToken / restore を取得し、本実行で confirmToken を渡す（トークンなしは 400）。型変更のために使わない。復元は人間の JWT のみ（POST /admin/v1/form-sets/{id}/restore。エージェントは 403 restore_requires_human_jwt）。返却の restore に consolePath / restoreApi / helpId / constraints（ウィジェットは戻らない）。人間の Console DELETE は従来どおり。Contact Form は削除不可。詳細: agent.undo-recovery / form-set.soft-delete-restore",
       inputSchema: {
         formSetId: formSetIdSchema,
         dryRun: z

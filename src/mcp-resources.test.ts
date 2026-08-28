@@ -39,4 +39,10 @@ describe("mcp resources catalog", () => {
     expect(pub?.body).toContain("get_pub_preview_url");
     expect(pub?.body).toContain("can_publish");
   });
+
+  it("permissions document human-only restore", () => {
+    const perms = LUNO_MCP_RESOURCES.find((r) => r.uri.endsWith("permissions"));
+    expect(perms?.body).toContain("restore_requires_human_jwt");
+    expect(perms?.body).toContain("Do not archive to change field types");
+  });
 });
