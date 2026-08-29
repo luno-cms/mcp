@@ -154,9 +154,10 @@ One MCP entry = one key. Split by site or scope with different MCP server names.
 
 ### Resuming an existing project
 
-1. `get_project_overview` — project summary (recommended first)  
-2. Then `get_form_set_schema` / `list_entries` as needed  
-3. Separate from greenfield Golden Path (builtin template → entry → publish)
+1. `get_project_overview` — project summary + `intentCapabilities` (recommended first)  
+2. Contact / inquiry → `create_contact_form`. Content → match `purposeLabels` then a template  
+3. Then `get_form_set_schema` / `list_entries` as needed  
+4. Separate from greenfield Golden Path (builtin template → entry → publish)
 
 ## Tools
 
@@ -164,7 +165,7 @@ One MCP entry = one key. Split by site or scope with different MCP server names.
 
 | Tool | Description |
 |------|-------------|
-| `get_project_overview` | Project summary (Form Sets / Contact / Masters / storage / login appearance / IP allowlist / locales / public API) |
+| `get_project_overview` | Project summary + `intentCapabilities` (Contact vs Form Set) / nextMoves / Form Sets / Contact / Masters / storage / locales / public API |
 | `get_tenant_schema` | Full project schema |
 | `list_form_sets` / `get_form_set_schema` | Form Set list / definition (`get_form_set_schema` includes form-set `schema-context` + `snapshotShape.example`; selects may include `masterEntityKey` / public records URL) |
 | `get_public_api_info` | Agent key `projectId` + public API base (entries / master-entities) |

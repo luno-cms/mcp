@@ -66,7 +66,7 @@ export function createLunoMcpServer(): McpServer {
   const apiBase = getLunoApiBase();
   getLunoAgentKey();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.39" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.40" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -99,7 +99,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.get_project_overview,
       outputSchema: TOOL_OUTPUT_SCHEMAS.get_project_overview,
       description:
-        "既存プロジェクト再開時の最初の一手。Form Sets（公開/下書き件数）・Contact Forms・Masters・メディア/quota・ログイン見た目要約・IP allowlist 有無（Business+）・locales・公開 API ベースを返す。権限不足セクションは available:false。新規サイト作成の Golden Path とは別。詳細は get_form_set_schema / get_login_appearance 等。引数なし。",
+        "既存プロジェクト再開時の最初の一手。intentCapabilities（ユーザー意図→プロダクト。お問い合わせは create_contact_form。お知らせ/ブログは purposeLabels で templateSlug）・nextMoves・hints.intent・Form Sets・Contact Forms・Masters・quota・locales・公開 API ベースを返す。空プロジェクトでも Contact を Form Set テンプレに落とさない。権限不足は available:false。詳細: agent.discover。引数なし。",
     },
     async () => textResult(await lunoJson("/v1/project-overview"))
   );
@@ -403,14 +403,14 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.apply_form_blueprint,
       outputSchema: TOOL_OUTPUT_SCHEMAS.apply_form_blueprint,
       description:
-        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind を見る。新規 slug は kind=create。既存の textarea→tiptap は kind=migrate（preview を見てから execute。変換不能は field_type_migration_blocked）。許可外の型変更は unsupported（新 field へ移行。型変更のために archive しない）。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成の後始末だけ archive_form_set。",
+        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind を見る。新規 slug は kind=create。既存への field/form 追加だけは kind=update（既存値は書き換えない）。既存の textarea→tiptap は kind=migrate（preview を見てから execute。変換不能は field_type_migration_blocked）。型変更と加算の混在・許可外の型変更は unsupported（新 field へ移行。archive を第一候補にしない）。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成の後始末だけ archive_form_set。",
       inputSchema: {
         blueprint: formBlueprintSchema,
         dryRun: z
           .boolean()
           .optional()
           .describe(
-            "true で適用せず実行可能性を検証。ok+wouldSucceed のときだけ本実行。kind=create は新規、kind=migrate は textarea→tiptap"
+            "true で適用せず実行可能性を検証。ok+wouldSucceed のときだけ本実行。kind=create は新規、kind=update は加算、kind=migrate は textarea→tiptap"
           ),
         idempotencyKey: z.string().optional().describe("冪等キー（異なる引数での再送は409 IDEMPOTENCY_KEY_CONFLICT。24時間で失効）"),
       },
@@ -561,7 +561,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.list_builtin_form_templates,
       outputSchema: TOOL_OUTPUT_SCHEMAS.list_builtin_form_templates,
       description:
-        "LUNO 公式 Form Set スターター一覧（引数なし）。返却 slug を apply_builtin_form_template の templateSlug に使う。詳細: agent.builtin-form-templates",
+        "LUNO 公式 Form Set スターター一覧（引数なし）。purposeLabels（ja/en。お知らせ・ブログ等）で用途をマッチし、返却 slug を apply_builtin_form_template の templateSlug に使う。slug を暗記しない。お問い合わせはここに無い。create_contact_form / get_project_overview.intentCapabilities を使う。詳細: agent.builtin-form-templates",
       inputSchema: {},
     },
     async () => textResult(await lunoJson("/v1/form-set-templates/builtin"))
@@ -573,7 +573,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.apply_builtin_form_template,
       outputSchema: TOOL_OUTPUT_SCHEMAS.apply_builtin_form_template,
       description:
-        "Builtin フォームテンプレから新規 Form Set を作成（schema/full）。必須: slug, name。テンプレ指定は templateSlug（list_builtin_form_templates の slug・推奨）または templateId（DB テンプレ UUID）のどちらか必須。任意: description, dryRun, idempotencyKey。返却 id を formSetId に使う。詳細: agent.builtin-form-templates。",
+        "Builtin フォームテンプレから新規 Form Set を作成（schema/full）。必須: slug, name。テンプレ指定は templateSlug（list_builtin_form_templates の slug・推奨。purposeLabels で選ぶ）または templateId（DB テンプレ UUID）のどちらか必須。任意: description, dryRun, idempotencyKey。create のみ（既存 slug の migrate/update は apply_form_blueprint）。お問い合わせには使わない。返却 id を formSetId に使う。詳細: agent.builtin-form-templates。",
       inputSchema: applyBuiltinFormTemplateSchema,
     },
     async ({
@@ -659,7 +659,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.create_contact_form,
       outputSchema: TOOL_OUTPUT_SCHEMAS.create_contact_form,
       description:
-        "Contact Form を新規作成（schema/full。削除は不可）。必須: slug, name, recipient_email。任意: fields, autoreply_*, email_signature, idempotencyKey。fields は Form Set の fieldKey 形ではない。各要素は { key, type, label:{ja,en}, required }。type は text|email|tel|textarea|select|checkbox|file。詳細: agent.contact-form-mcp。",
+        "お問い合わせ / contact / inquiry 用。Contact Form を新規作成（schema/full。削除は不可）。Form Set テンプレや apply_form_blueprint は使わない。必須: slug, name, recipient_email（ユーザーから聞く）。任意: fields, autoreply_*, email_signature, idempotencyKey。fields は Form Set の fieldKey 形ではない。各要素は { key, type, label:{ja,en}, required }。slug 衝突は 409 + existing + alternatives。同じ slug でリトライしない。詳細: agent.contact-form-mcp。",
       inputSchema: {
         slug: z.string().min(1).max(100).describe("Contact Form の slug"),
         name: z.string().min(1).max(255).describe("表示名"),

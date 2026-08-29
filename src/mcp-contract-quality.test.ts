@@ -223,6 +223,17 @@ describe("MCP input / output contracts", () => {
     });
     expect(result.isError).toBeTruthy();
   });
+
+  it("advertises intentCapabilities, purposeLabels, and kind=update", async () => {
+    const listed = await client.listTools();
+    const byName = Object.fromEntries(listed.tools.map((t) => [t.name, t.description ?? ""]));
+    expect(byName.get_project_overview).toContain("intentCapabilities");
+    expect(byName.get_project_overview).toContain("create_contact_form");
+    expect(byName.list_builtin_form_templates).toContain("purposeLabels");
+    expect(byName.apply_form_blueprint).toContain("kind=update");
+    expect(byName.create_contact_form).toContain("お問い合わせ");
+    expect(byName.apply_builtin_form_template).toContain("お問い合わせには使わない");
+  });
 });
 
 describe("connection config contract", () => {
