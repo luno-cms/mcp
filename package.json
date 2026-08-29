@@ -1,6 +1,6 @@
 {
   "name": "@luno-cms/mcp",
-  "version": "0.2.40",
+  "version": "0.2.41",
   "type": "module",
   "description": "MCP interface for LUNO, the AI-era Backend Platform. Lets Claude Code, Cursor, and Codex build, operate, and govern production backends — schemas, content, forms, auth, storage, and publish. npx @luno-cms/mcp setup",
   "keywords": [
