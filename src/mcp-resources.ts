@@ -94,7 +94,7 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 
 ## Create structure (agents)
 
-- Contact / inquiry / お問い合わせ: \`create_contact_form\` (needs \`recipient_email\`). Not a Form Set template.
+- Contact / inquiry / お問い合わせ: \`create_contact_form\` (needs \`recipient_email\`; \`dryRun: true\` first; only if status=ok / wouldSucceed). Not a Form Set template.
 - Content (お知らせ / blog / …): \`list_builtin_form_templates\` → match \`purposeLabels\` → \`apply_builtin_form_template\` (\`dryRun: true\` first; only if status=ok)
 - Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). New slug → \`kind=create\`. Extra field/form on existing slug → \`kind=update\`. Existing textarea→tiptap → \`kind=migrate\`. Mixed type-change+add or other type changes → unsupported.
 - Masters: \`apply_master_blueprint\`
@@ -252,7 +252,7 @@ Auth: \`Authorization: Bearer sk-agent-…\` + optional \`X-Project-Id\` when op
 | Publish | \`publish_revision\` |
 | Media | \`upload_media\`, \`list_media\` |
 | Masters | \`apply_master_blueprint\`, \`list_masters\` |
-| Contact | \`create_contact_form\`, \`update_contact_form\` |
+| Contact | \`create_contact_form\` (\`dryRun: true\` first), \`update_contact_form\` |
 | Help articles | \`search_admin_help\` |
 | Measure funnel | \`get_funnel_status\` |
 

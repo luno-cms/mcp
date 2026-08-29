@@ -12,7 +12,7 @@ Manifest: `src/tool-registry.ts`. Runner: `src/tool-registry.test.ts`. Output co
 | T1 Schema | All 49 | No-arg tools have empty `properties`. Others expose typed JSON Schema properties |
 | T2 Handler | `mutates: true` | Mocked `lunoJson` / `lunoFormData` is called with the expected path + method |
 | T3 Error | `validation: true` (≥15) | Invalid args → MCP error (`isError`) |
-| T4 Safety | `safety: true` | `archive_form_set` dryRun/confirmToken; `publish_revision` `/publish`; `propose_change` does not apply; IP delete uses DELETE |
+| T4 Safety | `safety: true` | `archive_form_set` dryRun/confirmToken; `publish_revision` `/publish`; `propose_change` does not apply; IP delete uses DELETE. `create_contact_form` dryRun is asserted in `mcp-contract-quality.test.ts` (description + schema) |
 | T5 Contract | All 49 | Every input property has `description`; every tool has `outputSchema`; representative Golden Path tools return `structuredContent` that parses |
 
 ## Adding a tool

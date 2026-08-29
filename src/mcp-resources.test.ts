@@ -50,6 +50,7 @@ describe("mcp resources catalog", () => {
     const schema = LUNO_MCP_RESOURCES.find((r) => r.uri.endsWith("schema-guide"));
     expect(schema?.body).toContain("intentCapabilities");
     expect(schema?.body).toContain("create_contact_form");
+    expect(schema?.body).toContain("recipient_email`; `dryRun: true` first");
     expect(schema?.body).toContain("purposeLabels");
     expect(schema?.body).toContain("kind=update");
   });
