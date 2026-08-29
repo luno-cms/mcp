@@ -66,7 +66,7 @@ export function createLunoMcpServer(): McpServer {
   const apiBase = getLunoApiBase();
   getLunoAgentKey();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.40" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.41" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -659,7 +659,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.create_contact_form,
       outputSchema: TOOL_OUTPUT_SCHEMAS.create_contact_form,
       description:
-        "お問い合わせ / contact / inquiry 用。Contact Form を新規作成（schema/full。削除は不可）。Form Set テンプレや apply_form_blueprint は使わない。必須: slug, name, recipient_email（ユーザーから聞く）。任意: fields, autoreply_*, email_signature, idempotencyKey。fields は Form Set の fieldKey 形ではない。各要素は { key, type, label:{ja,en}, required }。slug 衝突は 409 + existing + alternatives。同じ slug でリトライしない。詳細: agent.contact-form-mcp。",
+        "お問い合わせ / contact / inquiry 用。Contact Form を新規作成（schema/full。削除は不可）。Form Set テンプレや apply_form_blueprint は使わない。必須: slug, name, recipient_email（ユーザーから聞く）。任意: fields, autoreply_*, email_signature, dryRun, idempotencyKey。fields は Form Set の fieldKey 形ではない。各要素は { key, type, label:{ja,en}, required }。必ず先に dryRun: true（作成せず status/wouldSucceed）。slug 衝突は dryRun なら unsupported + existing、execute は 409。同じ slug でリトライしない。詳細: agent.contact-form-mcp。",
       inputSchema: {
         slug: z.string().min(1).max(100).describe("Contact Form の slug"),
         name: z.string().min(1).max(255).describe("表示名"),
@@ -688,6 +688,10 @@ export function createLunoMcpServer(): McpServer {
         email_signature: i18nTextSchema
           .optional()
           .describe("通知メール末尾の署名 { ja, en }"),
+        dryRun: z
+          .boolean()
+          .optional()
+          .describe("true で作成せず検証のみ。ok+wouldSucceed のときだけ本実行。削除不可なので dryRun を省略しない"),
         idempotencyKey: z
           .string()
           .max(200)
@@ -705,6 +709,7 @@ export function createLunoMcpServer(): McpServer {
       autoreply_subject,
       autoreply_body,
       email_signature,
+      dryRun,
       idempotencyKey,
     }) =>
       textResult(
@@ -720,6 +725,7 @@ export function createLunoMcpServer(): McpServer {
             ...(autoreply_subject !== undefined ? { autoreply_subject } : {}),
             ...(autoreply_body !== undefined ? { autoreply_body } : {}),
             ...(email_signature !== undefined ? { email_signature } : {}),
+            ...(dryRun === true ? { dryRun: true } : {}),
             ...(idempotencyKey ? { idempotencyKey } : {}),
           },
         })
