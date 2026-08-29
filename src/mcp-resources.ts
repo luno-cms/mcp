@@ -87,15 +87,16 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 
 | Goal | Tool / Resource |
 |------|-----------------|
-| Resume existing project | \`get_project_overview\` |
+| Resume existing project | \`get_project_overview\` (\`intentCapabilities\` / \`nextMoves\` / \`hints.intent\`) |
 | One Form Set detail | \`get_form_set_schema\` (formSetId UUID) |
 | All Form Sets | \`get_tenant_schema\` or \`list_form_sets\` |
 | Static field reference | \`luno://forms/field-types\` (this server) |
 
 ## Create structure (agents)
 
-- New Form Set from template: \`apply_builtin_form_template\` (\`dryRun: true\` first; only if status=ok)
-- Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). New slug → create. Existing textarea→tiptap → migrate. Other type changes → unsupported.
+- Contact / inquiry / お問い合わせ: \`create_contact_form\` (needs \`recipient_email\`). Not a Form Set template.
+- Content (お知らせ / blog / …): \`list_builtin_form_templates\` → match \`purposeLabels\` → \`apply_builtin_form_template\` (\`dryRun: true\` first; only if status=ok)
+- Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). New slug → \`kind=create\`. Extra field/form on existing slug → \`kind=update\`. Existing textarea→tiptap → \`kind=migrate\`. Mixed type-change+add or other type changes → unsupported.
 - Masters: \`apply_master_blueprint\`
 
 **IDs:** MCP tools use UUIDs (\`formSetId\`, \`entryId\`). Public API uses slugs.
@@ -243,7 +244,7 @@ Auth: \`Authorization: Bearer sk-agent-…\` + optional \`X-Project-Id\` when op
 
 | Task | Tool |
 |------|------|
-| Project inventory | \`get_project_overview\` |
+| Project inventory / intent | \`get_project_overview\` (\`intentCapabilities\`) |
 | List Form Sets | \`list_form_sets\` |
 | Schema for writes | \`get_form_set_schema\` |
 | List/create entries | \`list_entries\`, \`create_entry\` |
@@ -262,7 +263,7 @@ Auth: \`Authorization: Bearer sk-agent-…\` + optional \`X-Project-Id\` when op
 
 ## Errors
 
-JSON \`{ "error": { "code", "message" } }\`. Common: \`VALIDATION_ERROR\`, \`REVISION_CONFLICT\` (retry publish with fresh revision), \`UNAUTHORIZED\`, \`FORBIDDEN\`, \`RATE_LIMITED\`.
+JSON \`{ "error": { "code", "message" } }\`. Common: \`VALIDATION_ERROR\` (Contact slug clash includes \`existing\` + \`alternatives\`; do not retry same slug), \`REVISION_CONFLICT\` (retry publish with fresh revision), \`UNAUTHORIZED\`, \`FORBIDDEN\`, \`RATE_LIMITED\`.
 
 ## Resources (read without side effects)
 

@@ -45,4 +45,12 @@ describe("mcp resources catalog", () => {
     expect(perms?.body).toContain("restore_requires_human_jwt");
     expect(perms?.body).toContain("Do not archive to change field types");
   });
+
+  it("schema-guide routes contact vs content without LUNO jargon", () => {
+    const schema = LUNO_MCP_RESOURCES.find((r) => r.uri.endsWith("schema-guide"));
+    expect(schema?.body).toContain("intentCapabilities");
+    expect(schema?.body).toContain("create_contact_form");
+    expect(schema?.body).toContain("purposeLabels");
+    expect(schema?.body).toContain("kind=update");
+  });
 });
