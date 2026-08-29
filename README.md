@@ -155,7 +155,7 @@ One MCP entry = one key. Split by site or scope with different MCP server names.
 ### Resuming an existing project
 
 1. `get_project_overview` — project summary + `intentCapabilities` (recommended first)  
-2. Contact / inquiry → `create_contact_form`. Content → match `purposeLabels` then a template  
+2. Contact / inquiry → `create_contact_form` (`dryRun: true` first). Content → match `purposeLabels` then a template  
 3. Then `get_form_set_schema` / `list_entries` as needed  
 4. Separate from greenfield Golden Path (builtin template → entry → publish)
 
@@ -256,7 +256,7 @@ The Console does not send keys. Without a key, behavior is unchanged. After time
 | `end_agent_run` | `PATCH /v1/agent-runs/:runId` (terminal status; clears active run header) |
 | `get_agent_run` | `GET /v1/agent-runs/:runId` (own runs only; includes metrics) |
 | `get_funnel_status` | `GET /v1/measurement/funnels/:funnelId` (defaults to MCP session funnel) |
-| `create_contact_form` | `POST /v1/contact-forms` (`fields`: `{ key, type, label:{ja,en}, required }` — not Form Set `fieldKey`. `autoreply_*` / `email_signature` OK) |
+| `create_contact_form` | `POST /v1/contact-forms` (`dryRun: true` preview — no INSERT. `fields`: `{ key, type, label:{ja,en}, required }` — not Form Set `fieldKey`. `autoreply_*` / `email_signature` OK) |
 | `update_contact_form` | `PUT /v1/contact-forms/:id` (same fields shape; thank-you email settings) |
 
 **Contact Form autoreply:** `autoreply_enabled` + `autoreply_to_field` (email field key) sends HTML thank-you mail (intro → submitted fields table → `email_signature`).
@@ -287,10 +287,11 @@ Published entry JSON includes `published.mediaUrls` (asset id → CDN URL) under
 
 ### dryRun (schema preview)
 
-`apply_form_blueprint`, `apply_master_blueprint`, `apply_builtin_form_template`, and `archive_form_set` accept `dryRun: true` for a **no-write** preview. Real agent `archive_form_set` runs require the **`confirmToken`** from dryRun.
+`apply_form_blueprint`, `apply_master_blueprint`, `apply_builtin_form_template`, `archive_form_set`, and `create_contact_form` accept `dryRun: true` for a **no-write** preview. Real agent `archive_form_set` runs require the **`confirmToken`** from dryRun. Contact Form delete is still human-only — do not skip dryRun.
 
 - Form Blueprint: `operations` list  
 - Master Blueprint: `results` (create / update / skip counts)
+- Contact Form: `status` / `wouldSucceed` (no `id`). Slug clash → `unsupported` + `existing`
 
 ```json
 { "dryRun": true, "operations": [{ "op": "create_form_set", "slug": "blog", "name": "Blog" }, "..."] }
