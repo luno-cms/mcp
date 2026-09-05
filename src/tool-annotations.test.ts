@@ -37,8 +37,8 @@ function hintTuple(h: ToolHintSet): string {
 describe("MCP tool annotations (mcp#13)", () => {
   const names = extractToolNames(source);
 
-  it("parses all 50 registered tools", () => {
-    expect(names).toHaveLength(50);
+  it("parses all 51 registered tools", () => {
+    expect(names).toHaveLength(51);
   });
 
   it("exports annotations for exactly the registered tool names", () => {
@@ -91,6 +91,7 @@ describe("MCP tool annotations (mcp#13)", () => {
     });
     expect(TOOL_ANNOTATIONS.validate_master_blueprint.readOnlyHint).toBe(true);
     expect(TOOL_ANNOTATIONS.migrate_field_to_master_reference.readOnlyHint).toBe(true);
+    expect(TOOL_ANNOTATIONS.rename_master_record_slug.readOnlyHint).toBe(true);
     expect(TOOL_ANNOTATIONS.get_login_branding).toMatchObject({
       readOnlyHint: true,
       openWorldHint: false,

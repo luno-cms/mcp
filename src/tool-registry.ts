@@ -45,6 +45,7 @@ export const TOOL_REGISTRY = [
   { name: "validate_master_blueprint", validation: true },
   { name: "apply_master_blueprint", mutates: true, validation: true },
   { name: "migrate_field_to_master_reference", validation: true, safety: true },
+  { name: "rename_master_record_slug", validation: true, safety: true },
   { name: "create_contact_form", mutates: true, validation: true },
   { name: "update_contact_form", mutates: true, validation: true },
   { name: "list_master_entities", noArg: true },

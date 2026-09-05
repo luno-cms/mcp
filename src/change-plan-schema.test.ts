@@ -39,6 +39,27 @@ describe("proposeChangeInputSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("accepts rename_master_record_slug action", () => {
+    const parsed = proposeChangeInputSchema.safeParse({
+      goal: "Rename news_category 日常 to daily",
+      risk: "medium",
+      steps: [
+        {
+          action: "rename_master_record_slug",
+          dry_run: { status: "ok", raw: { dryRun: true, wouldSucceed: true } },
+          mutation: {
+            body: {
+              masterEntityKey: "news_category",
+              recordId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+              slug: "daily",
+            },
+          },
+        },
+      ],
+    });
+    expect(parsed.success).toBe(true);
+  });
+
   it("rejects empty steps", () => {
     const parsed = proposeChangeInputSchema.safeParse({
       goal: "x",

@@ -151,6 +151,7 @@ export const TOOL_OUTPUT_SCHEMAS = {
   validate_master_blueprint: A,
   apply_master_blueprint: A,
   migrate_field_to_master_reference: A,
+  rename_master_record_slug: A,
   create_contact_form: A,
   update_contact_form: A,
   list_master_entities: A,

@@ -85,8 +85,8 @@ async function closePair(
 describe("MCP tool registry (mcp#15)", () => {
   it("lists every registered tool exactly once (T0)", () => {
     const names = TOOL_REGISTRY.map((r) => r.name);
-    expect(names).toHaveLength(50);
-    expect(new Set(names).size).toBe(50);
+    expect(names).toHaveLength(51);
+    expect(new Set(names).size).toBe(51);
     expect([...names].sort()).toEqual(Object.keys(TOOL_ANNOTATIONS).sort());
   });
 
@@ -100,6 +100,7 @@ describe("MCP tool registry (mcp#15)", () => {
         "migrate_field_to_master_reference",
         "propose_change",
         "publish_revision",
+        "rename_master_record_slug",
       ].sort()
     );
   });
@@ -109,7 +110,7 @@ describe("MCP tool registry (mcp#15)", () => {
     try {
       const listed = await client.listTools();
       const byName = new Map(listed.tools.map((t) => [t.name, t]));
-      expect(listed.tools).toHaveLength(50);
+      expect(listed.tools).toHaveLength(51);
       const missing: string[] = [];
       for (const row of TOOL_REGISTRY) {
         const tool = byName.get(row.name);
@@ -452,6 +453,7 @@ describe("MCP tool handlers T2/T3/T4 (mcp#15)", () => {
       { name: "apply_builtin_form_template", args: { slug: "x", name: "Y" } },
       { name: "validate_master_blueprint", args: { entities: [] } },
       { name: "migrate_field_to_master_reference", args: { formSetSlug: "staff-blog" } },
+      { name: "rename_master_record_slug", args: { masterEntityKey: "news_category" } },
       { name: "apply_master_blueprint", args: { entities: [] } },
       { name: "create_contact_form", args: { slug: "c", name: "C" } },
       { name: "update_contact_form", args: { formId: FORM } },
@@ -562,6 +564,37 @@ describe("MCP tool handlers T2/T3/T4 (mcp#15)", () => {
       { method?: string; json?: { dryRun?: boolean } },
     ];
     expect(path).toBe("/v1/schema-migrations/to-master-reference");
+    expect(init.method).toBe("POST");
+    expect(init.json?.dryRun).toBe(true);
+  });
+
+  it("T4: rename_master_record_slug dryRun:false is isError and does not call lunoJson", async () => {
+    lunoJson.mockClear();
+    const result = await callTool("rename_master_record_slug", {
+      masterEntityKey: "news_category",
+      recordId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      slug: "daily",
+      dryRun: false,
+    });
+    expect(result.isError).toBeTruthy();
+    expect(lunoJson).not.toHaveBeenCalled();
+  });
+
+  it("T4: rename_master_record_slug posts dryRun:true preview only", async () => {
+    lunoJson.mockClear();
+    const result = await callTool("rename_master_record_slug", {
+      masterEntityKey: "news_category",
+      recordId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      slug: "daily",
+      dryRun: true,
+    });
+    expect(result.isError).toBeFalsy();
+    expect(lunoJson).toHaveBeenCalledTimes(1);
+    const [path, init] = lunoJson.mock.calls[0] as [
+      string,
+      { method?: string; json?: { dryRun?: boolean } },
+    ];
+    expect(path).toBe("/v1/master-records/rename-slug");
     expect(init.method).toBe("POST");
     expect(init.json?.dryRun).toBe(true);
   });

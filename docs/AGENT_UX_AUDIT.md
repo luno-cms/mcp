@@ -7,14 +7,14 @@ Related: [SCHEMA_QUALITY.md](./SCHEMA_QUALITY.md) (#92 input), [mcp#13](https://
 
 ---
 
-## A. Tool inventory (50)
+## A. Tool inventory (51)
 
 | Category | Tools |
 |----------|--------|
-| **A. Read-only** | `get_tenant_schema`, `get_project_overview`, `list_form_sets`, `get_form_set_schema`, `get_public_api_info`, `list_entries`, `get_entry`, `list_media`, `list_revisions`, `get_pub_preview_url`, `get_agent_run`, `get_change_plan`, `list_builtin_form_templates`, `validate_master_blueprint`, `migrate_field_to_master_reference`, `list_master_entities`, `get_master_entity`, `list_master_records`, `search_admin_help`, `get_admin_help_article`, `get_login_branding`, `get_login_appearance`, `list_console_login_ip_allowlists`, `get_project_content_locales`, `get_funnel_status` |
+| **A. Read-only** | `get_tenant_schema`, `get_project_overview`, `list_form_sets`, `get_form_set_schema`, `get_public_api_info`, `list_entries`, `get_entry`, `list_media`, `list_revisions`, `get_pub_preview_url`, `get_agent_run`, `get_change_plan`, `list_builtin_form_templates`, `validate_master_blueprint`, `migrate_field_to_master_reference`, `rename_master_record_slug`, `list_master_entities`, `get_master_entity`, `list_master_records`, `search_admin_help`, `get_admin_help_article`, `get_login_branding`, `get_login_appearance`, `list_console_login_ip_allowlists`, `get_project_content_locales`, `get_funnel_status` |
 | **B. Mutating** | `create_entry`, `bulk_create_entries`, `update_entry`, `submit_entry_for_review`, `save_revision`, `apply_builtin_form_template`, `create_contact_form`, `update_contact_form`, `create_master_record`, `update_master_record`, `update_master_tree`, `update_login_appearance`, `add_console_login_ip_allowlist`, `start_agent_run`, `end_agent_run` |
 | **C. Governance / approval** | `propose_change`, `get_change_plan`, `publish_revision`, `archive_form_set`, `start_agent_run`, `end_agent_run`, `get_agent_run` |
-| **D. Schema / blueprint** | `get_tenant_schema`, `get_form_set_schema`, `apply_form_blueprint`, `apply_builtin_form_template`, `validate_master_blueprint`, `apply_master_blueprint`, `migrate_field_to_master_reference` |
+| **D. Schema / blueprint** | `get_tenant_schema`, `get_form_set_schema`, `apply_form_blueprint`, `apply_builtin_form_template`, `validate_master_blueprint`, `apply_master_blueprint`, `migrate_field_to_master_reference`, `rename_master_record_slug` |
 | **E. Upload / external** | `upload_media`, `translate_entry_locales`, `ask_admin_help` |
 | **F. Trigger-only** | none — every tool returns inspectable JSON |
 

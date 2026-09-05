@@ -46,6 +46,8 @@ There is no field type named \`enum\` or \`master reference\`. Only the source o
 
 To migrate an existing static enum to a Master Reference, use \`migrate_field_to_master_reference\` (\`dryRun: true\` required) then \`propose_change(action: migrate_field_to_master_reference)\`. Do **not** use \`apply_form_blueprint\` for this migration.
 
+To rename a Master Record identifier (public name \`slug\`, compat \`value\`), use \`rename_master_record_slug\` (\`dryRun: true\` required) then \`propose_change(action: rename_master_record_slug)\`. Do **not** PATCH \`update_master_record\`.
+
 Before \`save_revision\`, call \`get_form_set_schema\` for \`snapshotShape\`, \`masterEntityKey\`, \`sampleValues\`.
 
 ## Localization
@@ -103,6 +105,7 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 - Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). New slug → \`kind=create\`. Extra field/form on existing slug → \`kind=update\`. Existing textarea→tiptap → \`kind=migrate\`. Mixed type-change+add or other type changes → unsupported.
 - Masters: \`apply_master_blueprint\`
 - Existing static enum → Master Reference: \`migrate_field_to_master_reference\` (\`dryRun: true\` only) → \`propose_change(action: migrate_field_to_master_reference)\`. Not a Blueprint change.
+- Rename Master Record identifier: \`rename_master_record_slug\` (\`dryRun: true\` only) → \`propose_change(action: rename_master_record_slug)\`. Not \`update_master_record\`.
 
 **IDs:** MCP tools use UUIDs (\`formSetId\`, \`entryId\`). Public API uses slugs.
 
@@ -258,6 +261,7 @@ Auth: \`Authorization: Bearer sk-agent-…\` + optional \`X-Project-Id\` when op
 | Media | \`upload_media\`, \`list_media\` |
 | Masters | \`apply_master_blueprint\`, \`list_masters\` |
 | enum → Master | \`migrate_field_to_master_reference\` (\`dryRun: true\` only) then \`propose_change\` |
+| Rename Master slug | \`rename_master_record_slug\` (\`dryRun: true\` only) then \`propose_change\` |
 | Contact | \`create_contact_form\` (\`dryRun: true\` first), \`update_contact_form\` |
 | Help articles | \`search_admin_help\` |
 | Measure funnel | \`get_funnel_status\` |
