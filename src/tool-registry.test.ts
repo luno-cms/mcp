@@ -85,8 +85,8 @@ async function closePair(
 describe("MCP tool registry (mcp#15)", () => {
   it("lists every registered tool exactly once (T0)", () => {
     const names = TOOL_REGISTRY.map((r) => r.name);
-    expect(names).toHaveLength(49);
-    expect(new Set(names).size).toBe(49);
+    expect(names).toHaveLength(50);
+    expect(new Set(names).size).toBe(50);
     expect([...names].sort()).toEqual(Object.keys(TOOL_ANNOTATIONS).sort());
   });
 
@@ -97,6 +97,7 @@ describe("MCP tool registry (mcp#15)", () => {
       [
         "archive_form_set",
         "delete_console_login_ip_allowlist",
+        "migrate_field_to_master_reference",
         "propose_change",
         "publish_revision",
       ].sort()
@@ -108,7 +109,7 @@ describe("MCP tool registry (mcp#15)", () => {
     try {
       const listed = await client.listTools();
       const byName = new Map(listed.tools.map((t) => [t.name, t]));
-      expect(listed.tools).toHaveLength(49);
+      expect(listed.tools).toHaveLength(50);
       const missing: string[] = [];
       for (const row of TOOL_REGISTRY) {
         const tool = byName.get(row.name);
@@ -450,6 +451,7 @@ describe("MCP tool handlers T2/T3/T4 (mcp#15)", () => {
       { name: "get_change_plan", args: { planId: "nope" } },
       { name: "apply_builtin_form_template", args: { slug: "x", name: "Y" } },
       { name: "validate_master_blueprint", args: { entities: [] } },
+      { name: "migrate_field_to_master_reference", args: { formSetSlug: "staff-blog" } },
       { name: "apply_master_blueprint", args: { entities: [] } },
       { name: "create_contact_form", args: { slug: "c", name: "C" } },
       { name: "update_contact_form", args: { formId: FORM } },
@@ -529,6 +531,39 @@ describe("MCP tool handlers T2/T3/T4 (mcp#15)", () => {
     expect(lunoJson).toHaveBeenCalledWith("/v1/change-plans", expect.objectContaining({ method: "POST" }));
     const paths = lunoJson.mock.calls.map((c) => c[0]);
     expect(paths.some((p) => String(p).includes("blueprints/apply"))).toBe(false);
+  });
+
+  it("T4: migrate_field_to_master_reference dryRun:false is isError and does not call lunoJson", async () => {
+    lunoJson.mockClear();
+    const result = await callTool("migrate_field_to_master_reference", {
+      formSetSlug: "staff-blog",
+      fieldKey: "category",
+      masterEntityKey: "staff_blog_category",
+      dryRun: false,
+    });
+    expect(result.isError).toBeTruthy();
+    expect(lunoJson).not.toHaveBeenCalled();
+  });
+
+  it("T4: migrate_field_to_master_reference posts dryRun:true preview only", async () => {
+    lunoJson.mockClear();
+    const result = await callTool("migrate_field_to_master_reference", {
+      formSetSlug: "staff-blog",
+      formKey: "main",
+      fieldKey: "category",
+      masterEntityKey: "staff_blog_category",
+      mapping: { 日常: "日常", イベント: "イベント" },
+      dryRun: true,
+    });
+    expect(result.isError).toBeFalsy();
+    expect(lunoJson).toHaveBeenCalledTimes(1);
+    const [path, init] = lunoJson.mock.calls[0] as [
+      string,
+      { method?: string; json?: { dryRun?: boolean } },
+    ];
+    expect(path).toBe("/v1/schema-migrations/to-master-reference");
+    expect(init.method).toBe("POST");
+    expect(init.json?.dryRun).toBe(true);
   });
 
   it("T4: delete_console_login_ip_allowlist uses HTTP DELETE", async () => {

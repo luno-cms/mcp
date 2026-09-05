@@ -95,6 +95,7 @@ export const TOOL_ANNOTATIONS = {
   get_change_plan: read,
   list_builtin_form_templates: read,
   validate_master_blueprint: read,
+  migrate_field_to_master_reference: read,
   list_master_entities: read,
   get_master_entity: read,
   list_master_records: read,

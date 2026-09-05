@@ -42,6 +42,10 @@ Source of truth: \`luno-cms/mcp\` package (this resource). Product DB enum must 
 - \`constraints.enum\`: string array, or
 - \`masterEntityKey\` on the field (preferred). Use master record **value** in snapshots.
 
+There is no field type named \`enum\` or \`master reference\`. Only the source of choices changes.
+
+To migrate an existing static enum to a Master Reference, use \`migrate_field_to_master_reference\` (\`dryRun: true\` required) then \`propose_change(action: migrate_field_to_master_reference)\`. Do **not** use \`apply_form_blueprint\` for this migration.
+
 Before \`save_revision\`, call \`get_form_set_schema\` for \`snapshotShape\`, \`masterEntityKey\`, \`sampleValues\`.
 
 ## Localization
@@ -98,6 +102,7 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 - Content (お知らせ / blog / …): \`list_builtin_form_templates\` → match \`purposeLabels\` → \`apply_builtin_form_template\` (\`dryRun: true\` first; only if status=ok)
 - Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). New slug → \`kind=create\`. Extra field/form on existing slug → \`kind=update\`. Existing textarea→tiptap → \`kind=migrate\`. Mixed type-change+add or other type changes → unsupported.
 - Masters: \`apply_master_blueprint\`
+- Existing static enum → Master Reference: \`migrate_field_to_master_reference\` (\`dryRun: true\` only) → \`propose_change(action: migrate_field_to_master_reference)\`. Not a Blueprint change.
 
 **IDs:** MCP tools use UUIDs (\`formSetId\`, \`entryId\`). Public API uses slugs.
 
@@ -252,6 +257,7 @@ Auth: \`Authorization: Bearer sk-agent-…\` + optional \`X-Project-Id\` when op
 | Publish | \`publish_revision\` |
 | Media | \`upload_media\`, \`list_media\` |
 | Masters | \`apply_master_blueprint\`, \`list_masters\` |
+| enum → Master | \`migrate_field_to_master_reference\` (\`dryRun: true\` only) then \`propose_change\` |
 | Contact | \`create_contact_form\` (\`dryRun: true\` first), \`update_contact_form\` |
 | Help articles | \`search_admin_help\` |
 | Measure funnel | \`get_funnel_status\` |

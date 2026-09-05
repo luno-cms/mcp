@@ -17,6 +17,28 @@ describe("proposeChangeInputSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("accepts migrate_field_to_master_reference action", () => {
+    const parsed = proposeChangeInputSchema.safeParse({
+      goal: "Move staff-blog category from static enum to Master",
+      risk: "medium",
+      steps: [
+        {
+          action: "migrate_field_to_master_reference",
+          dry_run: { status: "ok", raw: { dryRun: true, wouldSucceed: true } },
+          mutation: {
+            body: {
+              formSetSlug: "staff-blog",
+              fieldKey: "category",
+              masterEntityKey: "staff_blog_category",
+              mapping: { 日常: "日常" },
+            },
+          },
+        },
+      ],
+    });
+    expect(parsed.success).toBe(true);
+  });
+
   it("rejects empty steps", () => {
     const parsed = proposeChangeInputSchema.safeParse({
       goal: "x",

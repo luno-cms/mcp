@@ -29,6 +29,7 @@ This is an **Agent-native MCP Schema Quality** engineering standard — not a on
 | `upload_media` | ✅ | `upload-media-schema.ts` |
 | `apply_builtin_form_template` | ✅ | `apply-builtin-template-schema.ts` |
 | `publish_revision` | ✅ | shared ID schemas + description |
+| `migrate_field_to_master_reference` | ✅ (preview only; execute via `propose_change`) | `choice-source-migration-schema.ts` |
 
 ## Regression
 
