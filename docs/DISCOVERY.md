@@ -51,6 +51,7 @@ LUNO_API_URL=https://stg-api.luno.rest/admin npx @luno-cms/mcp serve-http --port
 ```bash
 pnpm public-audit && pnpm test && pnpm build
 # GitHub Actions → workflow_dispatch → Publish @luno-cms/mcp
+# or: git tag vX.Y.Z && git push origin vX.Y.Z  (tag must match package.json)
 ```
 
 `server.json` version must match `package.json` before Registry publish (`public-audit` enforces this).
