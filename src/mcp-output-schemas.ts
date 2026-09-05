@@ -150,6 +150,7 @@ export const TOOL_OUTPUT_SCHEMAS = {
   apply_builtin_form_template: A,
   validate_master_blueprint: A,
   apply_master_blueprint: A,
+  migrate_field_to_master_reference: A,
   create_contact_form: A,
   update_contact_form: A,
   list_master_entities: A,

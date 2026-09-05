@@ -94,5 +94,6 @@ describe("MCP schema quality (#92)", () => {
     expect(source).toContain("masterBlueprintEntitiesSchema");
     expect(source).toContain("uploadMediaInputSchema");
     expect(source).toContain("applyBuiltinFormTemplateSchema");
+    expect(source).toContain("migrateFieldToMasterReferenceInputSchema");
   });
 });

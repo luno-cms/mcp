@@ -97,7 +97,7 @@ describe("MCP input / output contracts", () => {
     resetActiveAgentRunIdForTests();
   });
 
-  it("covers all 49 tools in TOOL_OUTPUT_SCHEMAS", () => {
+  it("covers all 50 tools in TOOL_OUTPUT_SCHEMAS", () => {
     const names = TOOL_REGISTRY.map((r) => r.name).sort();
     expect(Object.keys(TOOL_OUTPUT_SCHEMAS).sort()).toEqual(names);
   });
@@ -114,7 +114,7 @@ describe("MCP input / output contracts", () => {
 
   it("every tool advertises outputSchema", async () => {
     const listed = await client.listTools();
-    expect(listed.tools).toHaveLength(49);
+    expect(listed.tools).toHaveLength(50);
     const missing = listed.tools
       .filter((t) => !t.outputSchema || (t.outputSchema as { type?: string }).type !== "object")
       .map((t) => t.name);
@@ -234,6 +234,8 @@ describe("MCP input / output contracts", () => {
     expect(byName.create_contact_form).toContain("お問い合わせ");
     expect(byName.create_contact_form).toMatch(/dryRun/);
     expect(byName.apply_builtin_form_template).toContain("お問い合わせには使わない");
+    expect(byName.migrate_field_to_master_reference).toMatch(/dryRun/);
+    expect(byName.propose_change).toContain("migrate_field_to_master_reference");
   });
 });
 

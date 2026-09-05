@@ -53,5 +53,12 @@ describe("mcp resources catalog", () => {
     expect(schema?.body).toContain("recipient_email`; `dryRun: true` first");
     expect(schema?.body).toContain("purposeLabels");
     expect(schema?.body).toContain("kind=update");
+    expect(schema?.body).toContain("migrate_field_to_master_reference");
+  });
+
+  it("field-types routes enum→Master through migrate_field_to_master_reference", () => {
+    const fieldTypes = LUNO_MCP_RESOURCES.find((r) => r.uri.endsWith("field-types"));
+    expect(fieldTypes?.body).toContain("migrate_field_to_master_reference");
+    expect(fieldTypes?.body).toMatch(/enum.*Master|Master Reference/i);
   });
 });

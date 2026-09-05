@@ -33,6 +33,7 @@ import { formBlueprintSchema } from "./form-blueprint-schema.js";
 import { masterBlueprintEntitiesSchema } from "./master-blueprint-schema.js";
 import { uploadMediaInputSchema } from "./upload-media-schema.js";
 import { applyBuiltinFormTemplateSchema } from "./apply-builtin-template-schema.js";
+import { migrateFieldToMasterReferenceInputSchema } from "./choice-source-migration-schema.js";
 import { bulkCreateEntriesInputSchema } from "./bulk-entry-schema.js";
 import { TOOL_ANNOTATIONS } from "./tool-annotations.js";
 import { TOOL_OUTPUT_SCHEMAS } from "./mcp-output-schemas.js";
@@ -465,7 +466,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.propose_change,
       outputSchema: TOOL_OUTPUT_SCHEMAS.propose_change,
       description:
-        "複数ステップの構造変更を Change Plan として提案（schema/full）。必須: goal, risk, steps（各 step に dry_run + mutation.body）。本ツールは mutations を実行しない。Human が Console で承認するまで pending_approval。先に apply_* を dryRun: true で呼び、返却を steps[].dry_run.raw に格納し、本実行用 body を mutation.body に入れる。詳細: agent.change-plans / agent.mcp-security-permissions",
+        "複数ステップの構造変更を Change Plan として提案（schema/full）。必須: goal, risk, steps（各 step に dry_run + mutation.body）。本ツールは mutations を実行しない。Human が Console で承認するまで pending_approval。先に apply_* または migrate_field_to_master_reference を dryRun: true で呼び、返却を steps[].dry_run.raw に格納し、本実行用 body を mutation.body に入れる。action は apply_form_blueprint / apply_builtin_form_template / apply_master_blueprint / migrate_field_to_master_reference。詳細: agent.change-plans / agent.mcp-security-permissions",
       inputSchema: proposeChangeInputSchema,
     },
     async ({ goal, steps, impact, risk, runId }) =>
@@ -648,6 +649,31 @@ export function createLunoMcpServer(): McpServer {
             entities,
             ...(dryRun === true ? { dryRun: true } : {}),
             ...(publish === true ? { publish: true } : {}),
+          },
+        })
+      )
+  );
+
+  mcp.registerTool(
+    "migrate_field_to_master_reference",
+    {
+      annotations: TOOL_ANNOTATIONS.migrate_field_to_master_reference,
+      outputSchema: TOOL_OUTPUT_SCHEMAS.migrate_field_to_master_reference,
+      description:
+        "静的 enum（constraints.enum）を Master Reference（masterEntityKey）へ移行するプレビュー（schema/full）。必須: formSetSlug, fieldKey, masterEntityKey, dryRun（true のみ）。任意: formKey（fieldKey が一意なら省略可）, mapping（enum 値→Master value 文字列。UUID ではない）。このツールは書き込まない。dryRun: false / 省略は拒否し API を呼ばない。実行は propose_change(action: migrate_field_to_master_reference)。apply_form_blueprint / update_field / update_field_type は使わない。mapping 省略時は enum 値と Master value / 一意 label を自動提案。曖昧なら mapping_ambiguous。詳細: agent.change-plans / agent.form-blueprint-mcp。",
+      inputSchema: migrateFieldToMasterReferenceInputSchema,
+    },
+    async ({ formSetSlug, formKey, fieldKey, masterEntityKey, mapping }) =>
+      textResult(
+        await lunoJson("/v1/schema-migrations/to-master-reference", {
+          method: "POST",
+          json: {
+            formSetSlug,
+            ...(formKey !== undefined ? { formKey } : {}),
+            fieldKey,
+            masterEntityKey,
+            ...(mapping !== undefined ? { mapping } : {}),
+            dryRun: true,
           },
         })
       )

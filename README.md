@@ -247,6 +247,7 @@ The Console does not send keys. Without a key, behavior is unchanged. After time
 | `apply_form_blueprint` | `POST /v1/form-blueprints/apply` (`dryRun: true` preview) |
 | `validate_master_blueprint` | `POST /v1/master-blueprints/validate` |
 | `apply_master_blueprint` | `POST /v1/master-blueprints/apply` (`dryRun: true` count preview; success `records[]` with id/value) |
+| `migrate_field_to_master_reference` | `POST /v1/schema-migrations/to-master-reference` (**`dryRun: true` required**. Preview only — execute via `propose_change`) |
 | `list_builtin_form_templates` | `GET /v1/form-set-templates/builtin` |
 | `apply_builtin_form_template` | Preferred: `templateSlug` → `POST /v1/form-set-templates/builtin/:slug/apply`. Compat: `templateId` → `POST /v1/form-set-templates/:id/apply` (`dryRun: true` OK) |
 | `archive_form_set` | `POST /v1/form-sets/:id/archive` (agents: `dryRun: true` → `confirmToken` for real run; soft-delete via `deleted_at`; HTTP DELETE not allowed) |
@@ -287,11 +288,12 @@ Published entry JSON includes `published.mediaUrls` (asset id → CDN URL) under
 
 ### dryRun (schema preview)
 
-`apply_form_blueprint`, `apply_master_blueprint`, `apply_builtin_form_template`, `archive_form_set`, and `create_contact_form` accept `dryRun: true` for a **no-write** preview. Real agent `archive_form_set` runs require the **`confirmToken`** from dryRun. Contact Form delete is still human-only — do not skip dryRun.
+`apply_form_blueprint`, `apply_master_blueprint`, `apply_builtin_form_template`, `archive_form_set`, `create_contact_form`, and `migrate_field_to_master_reference` accept `dryRun: true` for a **no-write** preview. Real agent `archive_form_set` runs require the **`confirmToken`** from dryRun. Contact Form delete is still human-only — do not skip dryRun. `migrate_field_to_master_reference` **requires** `dryRun: true` (false / omitted is rejected; it never executes — use `propose_change`).
 
 - Form Blueprint: `operations` list  
 - Master Blueprint: `results` (create / update / skip counts)
 - Contact Form: `status` / `wouldSucceed` (no `id`). Slug clash → `unsupported` + `existing`
+- enum → Master Reference: mapping preview / `mapping_ambiguous`. Execute only after human Change Plan approval
 
 ```json
 { "dryRun": true, "operations": [{ "op": "create_form_set", "slug": "blog", "name": "Blog" }, "..."] }
