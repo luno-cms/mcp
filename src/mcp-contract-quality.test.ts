@@ -231,6 +231,7 @@ describe("MCP input / output contracts", () => {
     expect(byName.get_project_overview).toContain("create_contact_form");
     expect(byName.list_builtin_form_templates).toContain("purposeLabels");
     expect(byName.apply_form_blueprint).toContain("kind=update");
+    expect(byName.apply_form_blueprint).toContain("migrate_field_to_master_reference");
     expect(byName.create_contact_form).toContain("お問い合わせ");
     expect(byName.create_contact_form).toMatch(/dryRun/);
     expect(byName.apply_builtin_form_template).toContain("お問い合わせには使わない");

@@ -404,7 +404,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.apply_form_blueprint,
       outputSchema: TOOL_OUTPUT_SCHEMAS.apply_form_blueprint,
       description:
-        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind を見る。新規 slug は kind=create。既存への field/form 追加だけは kind=update（既存値は書き換えない）。既存の textarea→tiptap は kind=migrate（preview を見てから execute。変換不能は field_type_migration_blocked）。型変更と加算の混在・許可外の型変更は unsupported（新 field へ移行。archive を第一候補にしない）。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成の後始末だけ archive_form_set。",
+        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind を見る。新規 slug は kind=create。既存への field/form 追加だけは kind=update（既存値は書き換えない）。既存の textarea→tiptap は kind=migrate（preview を見てから execute。変換不能は field_type_migration_blocked）。静的 enum→Master Reference は apply しない（migrate_field_to_master_reference → propose_change）。型変更と加算の混在・許可外の型変更は unsupported（新 field へ移行。archive を第一候補にしない）。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成の後始末だけ archive_form_set。",
       inputSchema: {
         blueprint: formBlueprintSchema,
         dryRun: z
