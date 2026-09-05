@@ -34,6 +34,7 @@ import { masterBlueprintEntitiesSchema } from "./master-blueprint-schema.js";
 import { uploadMediaInputSchema } from "./upload-media-schema.js";
 import { applyBuiltinFormTemplateSchema } from "./apply-builtin-template-schema.js";
 import { migrateFieldToMasterReferenceInputSchema } from "./choice-source-migration-schema.js";
+import { renameMasterRecordSlugInputSchema } from "./master-record-slug-rename-schema.js";
 import { bulkCreateEntriesInputSchema } from "./bulk-entry-schema.js";
 import { TOOL_ANNOTATIONS } from "./tool-annotations.js";
 import { TOOL_OUTPUT_SCHEMAS } from "./mcp-output-schemas.js";
@@ -466,7 +467,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.propose_change,
       outputSchema: TOOL_OUTPUT_SCHEMAS.propose_change,
       description:
-        "複数ステップの構造変更を Change Plan として提案（schema/full）。必須: goal, risk, steps（各 step に dry_run + mutation.body）。本ツールは mutations を実行しない。Human が Console で承認するまで pending_approval。先に apply_* または migrate_field_to_master_reference を dryRun: true で呼び、返却を steps[].dry_run.raw に格納し、本実行用 body を mutation.body に入れる。action は apply_form_blueprint / apply_builtin_form_template / apply_master_blueprint / migrate_field_to_master_reference。詳細: agent.change-plans / agent.mcp-security-permissions",
+        "複数ステップの構造変更を Change Plan として提案（schema/full）。必須: goal, risk, steps（各 step に dry_run + mutation.body）。本ツールは mutations を実行しない。Human が Console で承認するまで pending_approval。先に apply_* / migrate_field_to_master_reference / rename_master_record_slug を dryRun: true で呼び、返却を steps[].dry_run.raw に格納し、本実行用 body を mutation.body に入れる。action は apply_form_blueprint / apply_builtin_form_template / apply_master_blueprint / migrate_field_to_master_reference / rename_master_record_slug。詳細: agent.change-plans / agent.mcp-security-permissions",
       inputSchema: proposeChangeInputSchema,
     },
     async ({ goal, steps, impact, risk, runId }) =>
@@ -673,6 +674,32 @@ export function createLunoMcpServer(): McpServer {
             fieldKey,
             masterEntityKey,
             ...(mapping !== undefined ? { mapping } : {}),
+            dryRun: true,
+          },
+        })
+      )
+  );
+
+  mcp.registerTool(
+    "rename_master_record_slug",
+    {
+      annotations: TOOL_ANNOTATIONS.rename_master_record_slug,
+      outputSchema: TOOL_OUTPUT_SCHEMAS.rename_master_record_slug,
+      description:
+        "Master Record の公開 identifier（slug。互換キー value）をリネームするプレビュー（schema/full）。必須: masterEntityKey, dryRun（true のみ）, slug または value, recordId または currentSlug/currentValue。このツールは書き込まない。dryRun: false / 省略は拒否し API を呼ばない。実行は propose_change(action: rename_master_record_slug)。update_master_record の value PATCH は使わない（snapshot が切れ、エージェントキーは 401）。承認後は master_records.value と参照 Field の snapshot を同時に書き換える。詳細: agent.change-plans / agent.snapshot-field-values。",
+      inputSchema: renameMasterRecordSlugInputSchema,
+    },
+    async ({ masterEntityKey, recordId, currentSlug, currentValue, slug, value }) =>
+      textResult(
+        await lunoJson("/v1/master-records/rename-slug", {
+          method: "POST",
+          json: {
+            masterEntityKey,
+            ...(recordId !== undefined ? { recordId } : {}),
+            ...(currentSlug !== undefined ? { currentSlug } : {}),
+            ...(currentValue !== undefined ? { currentValue } : {}),
+            ...(slug !== undefined ? { slug } : {}),
+            ...(value !== undefined ? { value } : {}),
             dryRun: true,
           },
         })
@@ -904,7 +931,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.update_master_record,
       outputSchema: TOOL_OUTPUT_SCHEMAS.update_master_record,
       description:
-        "マスタレコードを更新。必須: entityId, recordId。任意: label, value, sortOrder, parentRecordId, data。**エージェント API キーでは不可**（401 — ユーザ JWT + 編集権限が必要）。並び替えは apply_master_blueprint の sort_order を使う。",
+        "マスタレコードを更新。必須: entityId, recordId。任意: label, value, sortOrder, parentRecordId, data。**エージェント API キーでは不可**（401 — ユーザ JWT + 編集権限が必要）。identifier（slug / value）の変更は rename_master_record_slug → propose_change。並び替えは apply_master_blueprint の sort_order を使う。",
       inputSchema: {
         entityId: masterEntityIdSchema,
         recordId: masterRecordIdSchema,

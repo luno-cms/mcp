@@ -7,6 +7,7 @@ export const changePlanActionSchema = z.enum([
   "apply_builtin_form_template",
   "apply_master_blueprint",
   "migrate_field_to_master_reference",
+  "rename_master_record_slug",
 ]);
 
 export const changePlanDryRunSchema = z.object({
@@ -22,7 +23,7 @@ export const changePlanDryRunSchema = z.object({
 
 export const changePlanStepSchema = z.object({
   action: changePlanActionSchema.describe(
-    "apply_form_blueprint | apply_builtin_form_template | apply_master_blueprint | migrate_field_to_master_reference"
+    "apply_form_blueprint | apply_builtin_form_template | apply_master_blueprint | migrate_field_to_master_reference | rename_master_record_slug"
   ),
   resource_type: z
     .string()

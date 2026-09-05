@@ -30,6 +30,7 @@ This is an **Agent-native MCP Schema Quality** engineering standard — not a on
 | `apply_builtin_form_template` | ✅ | `apply-builtin-template-schema.ts` |
 | `publish_revision` | ✅ | shared ID schemas + description |
 | `migrate_field_to_master_reference` | ✅ (preview only; execute via `propose_change`) | `choice-source-migration-schema.ts` |
+| `rename_master_record_slug` | ✅ (preview only; execute via `propose_change`) | `master-record-slug-rename-schema.ts` |
 
 ## Regression
 
