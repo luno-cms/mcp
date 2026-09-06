@@ -97,7 +97,7 @@ describe("MCP input / output contracts", () => {
     resetActiveAgentRunIdForTests();
   });
 
-  it("covers all 51 tools in TOOL_OUTPUT_SCHEMAS", () => {
+  it("covers all 52 tools in TOOL_OUTPUT_SCHEMAS", () => {
     const names = TOOL_REGISTRY.map((r) => r.name).sort();
     expect(Object.keys(TOOL_OUTPUT_SCHEMAS).sort()).toEqual(names);
   });
@@ -114,7 +114,7 @@ describe("MCP input / output contracts", () => {
 
   it("every tool advertises outputSchema", async () => {
     const listed = await client.listTools();
-    expect(listed.tools).toHaveLength(51);
+    expect(listed.tools).toHaveLength(52);
     const missing = listed.tools
       .filter((t) => !t.outputSchema || (t.outputSchema as { type?: string }).type !== "object")
       .map((t) => t.name);
@@ -123,6 +123,10 @@ describe("MCP input / output contracts", () => {
 
   it("representative tools return structuredContent that matches outputSchema", async () => {
     const cases: Array<{ name: string; args: Record<string, unknown>; fixture?: unknown }> = [
+      {
+        name: "get_mcp_runtime",
+        args: {},
+      },
       {
         name: "get_project_overview",
         args: {},
@@ -229,16 +233,33 @@ describe("MCP input / output contracts", () => {
     const byName = Object.fromEntries(listed.tools.map((t) => [t.name, t.description ?? ""]));
     expect(byName.get_project_overview).toContain("intentCapabilities");
     expect(byName.get_project_overview).toContain("create_contact_form");
+    expect(byName.get_project_overview).toContain("get_mcp_runtime");
+    expect(byName.get_mcp_runtime).toMatch(/mcpVersion|LUNO 非/);
     expect(byName.list_builtin_form_templates).toContain("purposeLabels");
     expect(byName.apply_form_blueprint).toContain("kind=update");
+    expect(byName.apply_form_blueprint).toContain("wouldSucceed");
+    expect(byName.apply_form_blueprint).toMatch(/決め打ち|dryRun がそう返した/);
     expect(byName.apply_form_blueprint).toContain("migrate_field_to_master_reference");
     expect(byName.create_contact_form).toContain("お問い合わせ");
     expect(byName.create_contact_form).toMatch(/dryRun/);
     expect(byName.apply_builtin_form_template).toContain("お問い合わせには使わない");
     expect(byName.migrate_field_to_master_reference).toMatch(/dryRun/);
+    expect(byName.migrate_field_to_master_reference).toMatch(/JSONB|フロント/);
     expect(byName.rename_master_record_slug).toMatch(/dryRun/);
+    expect(byName.rename_master_record_slug).toMatch(/sort_order/);
+    expect(byName.ask_admin_help).toMatch(/502|truncated/);
     expect(byName.propose_change).toContain("migrate_field_to_master_reference");
     expect(byName.propose_change).toContain("rename_master_record_slug");
+  });
+
+  it("get_mcp_runtime does not call LUNO", async () => {
+    lunoJson.mockClear();
+    const result = await client.callTool({ name: "get_mcp_runtime", arguments: {} });
+    expect(result.isError).toBeFalsy();
+    expect(lunoJson).not.toHaveBeenCalled();
+    const structured = result.structuredContent as { mcpVersion?: string; toolCount?: number };
+    expect(structured.toolCount).toBe(52);
+    expect(structured.mcpVersion).toMatch(/^\d+\.\d+\.\d+/);
   });
 });
 

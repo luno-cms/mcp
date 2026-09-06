@@ -47,5 +47,5 @@ export const migrateFieldToMasterReferenceInputSchema = z
   })
   .strict()
   .describe(
-    "enum → Master Reference preview. Required: formSetSlug, fieldKey, masterEntityKey, dryRun:true. Do not use apply_form_blueprint / update_field / update_field_type. Execute via propose_change. Help: agent.change-plans / agent.form-blueprint-mcp."
+    "enum → Master Reference preview. Required: formSetSlug, fieldKey, masterEntityKey, dryRun:true. Do not use apply_form_blueprint / update_field / update_field_type. Execute via propose_change. Snapshot values become Master value (frontend hardcoded compares are a separate change). If dryRun sees no enum, constraints may be a JSONB string — inspect get_form_set_schema. Help: agent.change-plans / agent.form-blueprint-mcp."
   );

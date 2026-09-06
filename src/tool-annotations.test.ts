@@ -37,8 +37,8 @@ function hintTuple(h: ToolHintSet): string {
 describe("MCP tool annotations (mcp#13)", () => {
   const names = extractToolNames(source);
 
-  it("parses all 51 registered tools", () => {
-    expect(names).toHaveLength(51);
+  it("parses all 52 registered tools", () => {
+    expect(names).toHaveLength(52);
   });
 
   it("exports annotations for exactly the registered tool names", () => {

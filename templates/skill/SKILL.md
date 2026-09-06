@@ -57,7 +57,7 @@ npx -y @luno-cms/mcp env switch <env>
 ```
 
 8. 以降の MCP ツールは **`luno-<env>`**（例: `luno-stg`）を優先して使う。アクティブ環境は `npx -y @luno-cms/mcp env active` で確認。
-9. セットアップ完了後、必要なら「MCP を再接続してください（Claude: `/mcp`、Cursor: Reload / Tools & MCP）」と一言案内する。
+9. セットアップ完了後、必要なら「MCP を再接続してください（Claude: `/mcp`、Cursor: Reload / Tools & MCP）」と一言案内する。生成される MCP 設定は `npx -y @luno-cms/mcp@latest run <env>`。npm 公開後にツールが増えないときは **再接続**する（バージョンを手でピン留めしない）。実行中バージョンは `npx -y @luno-cms/mcp --version` または `get_mcp_runtime`。
 
 デフォルト URL（ユーザーが上書きしない限り）:
 

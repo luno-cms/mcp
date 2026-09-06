@@ -19,6 +19,7 @@ export type ToolRegistryRow = {
 export const TOOL_REGISTRY = [
   { name: "get_tenant_schema", noArg: true },
   { name: "get_project_overview", noArg: true },
+  { name: "get_mcp_runtime", noArg: true },
   { name: "list_form_sets", noArg: true },
   { name: "get_form_set_schema", validation: true },
   { name: "get_public_api_info", noArg: true },

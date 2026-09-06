@@ -82,6 +82,7 @@ const openAsk: ToolHintSet = {
 export const TOOL_ANNOTATIONS = {
   get_tenant_schema: read,
   get_project_overview: read,
+  get_mcp_runtime: read,
   list_form_sets: read,
   get_form_set_schema: read,
   get_public_api_info: read,

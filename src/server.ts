@@ -27,7 +27,10 @@ import {
 } from "./agent-run-schema.js";
 import { tryFormatMcpInvalidArgumentsMessage } from "./agent-errors.js";
 import { contactFormFieldsArraySchema } from "./contact-form-fields.js";
-import { registerMcpResources } from "./mcp-resources.js";
+import { LUNO_MCP_RESOURCES, registerMcpResources } from "./mcp-resources.js";
+import { buildMcpRuntimeSnapshot, formatMcpReadyLog } from "./mcp-runtime.js";
+import { readPackageVersion } from "./package-version.js";
+import { TOOL_REGISTRY } from "./tool-registry.js";
 import { snapshotSchema } from "./snapshot-schema.js";
 import { formBlueprintSchema } from "./form-blueprint-schema.js";
 import { masterBlueprintEntitiesSchema } from "./master-blueprint-schema.js";
@@ -68,7 +71,7 @@ export function createLunoMcpServer(): McpServer {
   const apiBase = getLunoApiBase();
   getLunoAgentKey();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.45" });
+  const mcp = new McpServer({ name: "luno", version: readPackageVersion() });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -101,9 +104,20 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.get_project_overview,
       outputSchema: TOOL_OUTPUT_SCHEMAS.get_project_overview,
       description:
-        "既存プロジェクト再開時の最初の一手。intentCapabilities（ユーザー意図→プロダクト。お問い合わせは create_contact_form。お知らせ/ブログは purposeLabels で templateSlug）・nextMoves・hints.intent・Form Sets・Contact Forms・Masters・quota・locales・公開 API ベースを返す。空プロジェクトでも Contact を Form Set テンプレに落とさない。権限不足は available:false。詳細: agent.discover。引数なし。",
+        "既存プロジェクト再開時の最初の一手。intentCapabilities（ユーザー意図→プロダクト。お問い合わせは create_contact_form。お知らせ/ブログは purposeLabels で templateSlug）・nextMoves・hints.intent・Form Sets・Contact Forms・Masters・quota・locales・公開 API ベースを返す。空プロジェクトでも Contact を Form Set テンプレに落とさない。権限不足は available:false。MCP パッケージ版と API 契約は get_mcp_runtime（引数なし・LUNO 非呼び出し。ツール一覧 ≠ API デプロイ済み）。詳細: agent.discover。引数なし。",
     },
     async () => textResult(await lunoJson("/v1/project-overview"))
+  );
+
+  mcp.registerTool(
+    "get_mcp_runtime",
+    {
+      annotations: TOOL_ANNOTATIONS.get_mcp_runtime,
+      outputSchema: TOOL_OUTPUT_SCHEMAS.get_mcp_runtime,
+      description:
+        "この MCP パッケージの実行時情報（引数なし・LUNO API は呼ばない）。mcpVersion / toolCount / contract（tool→Admin API）。ツールが載っていてもホスト API が未デプロイのことがある。404 なら API が古い。代替 mutation を発明しない。詳細: luno://mcp/runtime。",
+    },
+    async () => textResult(buildMcpRuntimeSnapshot(apiBase))
   );
 
   mcp.registerTool(
@@ -405,7 +419,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.apply_form_blueprint,
       outputSchema: TOOL_OUTPUT_SCHEMAS.apply_form_blueprint,
       description:
-        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind を見る。新規 slug は kind=create。既存への field/form 追加だけは kind=update（既存値は書き換えない）。既存の textarea→tiptap は kind=migrate（preview を見てから execute。変換不能は field_type_migration_blocked）。静的 enum→Master Reference は apply しない（migrate_field_to_master_reference → propose_change）。型変更と加算の混在・許可外の型変更は unsupported（新 field へ移行。archive を第一候補にしない）。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成の後始末だけ archive_form_set。",
+        "FormBlueprint を適用（schema/full）。必須: blueprint（オブジェクト）。任意: dryRun, idempotencyKey。version + formSet + forms（fieldKey/sortOrder）。Contact Form の { key, label:{ja,en} } 形ではない。必ず先に dryRun: true。返却の status/wouldSucceed/kind が契約。kind=create/update/migrate は dryRun がそう返したときだけ進む。既存 slug への field 追加を kind=update と決め打ちしない（unsupported なら同じ slug でリトライしない。allowlist を広げない）。textarea→tiptap は dryRun が kind=migrate のときだけ（preview を見てから execute。変換不能は field_type_migration_blocked）。静的 enum→Master Reference は apply しない（migrate_field_to_master_reference → propose_change）。型変更と加算の混在・許可外の型変更は unsupported（新 field へ移行。archive を第一候補にしない）。同じ slug でリトライしない。詳細: agent.form-blueprint-mcp。誤作成の後始末だけ archive_form_set。",
       inputSchema: {
         blueprint: formBlueprintSchema,
         dryRun: z
@@ -661,7 +675,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.migrate_field_to_master_reference,
       outputSchema: TOOL_OUTPUT_SCHEMAS.migrate_field_to_master_reference,
       description:
-        "静的 enum（constraints.enum）を Master Reference（masterEntityKey）へ移行するプレビュー（schema/full）。必須: formSetSlug, fieldKey, masterEntityKey, dryRun（true のみ）。任意: formKey（fieldKey が一意なら省略可）, mapping（enum 値→Master value 文字列。UUID ではない）。このツールは書き込まない。dryRun: false / 省略は拒否し API を呼ばない。実行は propose_change(action: migrate_field_to_master_reference)。apply_form_blueprint / update_field / update_field_type は使わない。mapping 省略時は enum 値と Master value / 一意 label を自動提案。曖昧なら mapping_ambiguous。詳細: agent.change-plans / agent.form-blueprint-mcp。",
+        "静的 enum（constraints.enum）を Master Reference（masterEntityKey）へ移行するプレビュー（schema/full）。必須: formSetSlug, fieldKey, masterEntityKey, dryRun（true のみ）。任意: formKey（fieldKey が一意なら省略可）, mapping（enum 値→Master value 文字列。UUID ではない）。このツールは書き込まない。dryRun: false / 省略は拒否し API を呼ばない。実行は propose_change(action: migrate_field_to_master_reference)。apply_form_blueprint / update_field / update_field_type は使わない。mapping 省略時は enum 値と Master value / 一意 label を自動提案。曖昧なら mapping_ambiguous。dryRun が enum 無し / mapping 空なら constraints が JSONB 文字列のことがある。get_form_set_schema で実体を確認（バックエンド修正はホスト側）。成功しても snapshot 値は Master value に変わる。フロントのハードコード比較（例: 日常 vs daily）は別変更。dryRun 成功 ≠ フロント完了。詳細: agent.change-plans / agent.form-blueprint-mcp。",
       inputSchema: migrateFieldToMasterReferenceInputSchema,
     },
     async ({ formSetSlug, formKey, fieldKey, masterEntityKey, mapping }) =>
@@ -686,7 +700,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.rename_master_record_slug,
       outputSchema: TOOL_OUTPUT_SCHEMAS.rename_master_record_slug,
       description:
-        "Master Record の公開 identifier（slug。互換キー value）をリネームするプレビュー（schema/full）。必須: masterEntityKey, dryRun（true のみ）, slug または value, recordId または currentSlug/currentValue。このツールは書き込まない。dryRun: false / 省略は拒否し API を呼ばない。実行は propose_change(action: rename_master_record_slug)。update_master_record の value PATCH は使わない（snapshot が切れ、エージェントキーは 401）。承認後は master_records.value と参照 Field の snapshot を同時に書き換える。詳細: agent.change-plans / agent.snapshot-field-values。",
+        "Master Record の公開 identifier（slug。互換キー value）をリネームするプレビュー（schema/full）。必須: masterEntityKey, dryRun（true のみ）, slug または value, recordId または currentSlug/currentValue。このツールは書き込まない。dryRun: false / 省略は拒否し API を呼ばない。実行は propose_change(action: rename_master_record_slug)。update_master_record の value PATCH は使わない（snapshot が切れ、エージェントキーは 401）。承認後は master_records.value と参照 Field の snapshot を同時に書き換える。execute（Change Plan 承認後）は対象以外の Master Record の sort_order を正規化することがある。dryRun preview を確認。意図しない並び替えなら人間に止めてもらう（ホスト側の仕様確認）。詳細: agent.change-plans / agent.snapshot-field-values。",
       inputSchema: renameMasterRecordSlugInputSchema,
     },
     async ({ masterEntityKey, recordId, currentSlug, currentValue, slug, value }) =>
@@ -1065,7 +1079,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.ask_admin_help,
       outputSchema: TOOL_OUTPUT_SCHEMAS.ask_admin_help,
       description:
-        "LUNO の使い方を自然言語で質問（RAG）。必須: question。任意: locale。snapshot / 公開 API / Blueprint は category agent を参照。",
+        "LUNO の使い方を自然言語で質問（RAG）。必須: question。任意: locale。snapshot / 公開 API / Blueprint は category agent を参照。502 / truncated はリトライ可。繰り返すなら search_admin_help / get_admin_help_article。本ツールはホスト LLM 依存で不安定なことがある。",
       inputSchema: {
         question: z.string().min(1).max(500).describe("自然言語の質問"),
         locale: z.enum(["ja", "en"]).optional().describe("回答 locale"),
@@ -1358,7 +1372,13 @@ export async function startLunoMcp(): Promise<void> {
   const apiBase = getLunoApiBase();
   // stdio MCP: logs must go to stderr so they don't corrupt the protocol
   console.error(
-    `[luno-mcp] ready version=0.2.29 funnel_id=${funnelId} api=${apiBase} resources=5 luno://forms/field-types,… tools≈46 incl. bulk_create_entries,get_pub_preview_url,get_project_overview,list_builtin_form_templates,get_funnel_status,upload_media,get_public_api_info,save_revision,publish_revision,apply_form_blueprint,archive_form_set,search_admin_help`
+    formatMcpReadyLog({
+      version: readPackageVersion(),
+      funnelId,
+      apiBase,
+      resourceCount: LUNO_MCP_RESOURCES.length,
+      toolCount: TOOL_REGISTRY.length,
+    })
   );
 
   const transport = new StdioServerTransport();

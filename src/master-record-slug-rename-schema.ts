@@ -63,5 +63,5 @@ export const renameMasterRecordSlugInputSchema = z
     { message: "currentSlug and currentValue must match" },
   )
   .describe(
-    "Master Record slug rename preview. Required: masterEntityKey, dryRun:true, slug or value, and recordId or currentSlug/currentValue. Public name is slug; value is compat dual. Do not PATCH update_master_record for identifier changes. Execute via propose_change. Help: agent.change-plans / agent.snapshot-field-values."
+    "Master Record slug rename preview. Required: masterEntityKey, dryRun:true, slug or value, and recordId or currentSlug/currentValue. Public name is slug; value is compat dual. Do not PATCH update_master_record for identifier changes. Execute via propose_change may renormalize sort_order on other records — inspect dryRun preview. Help: agent.change-plans / agent.snapshot-field-values."
   );

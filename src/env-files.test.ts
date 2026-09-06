@@ -84,6 +84,7 @@ describe("project env lifecycle", () => {
     expect(statusLines(root).join("\n")).toContain(".agents/luno/");
     expect(statusLines(root).join("\n")).toContain("luno-stg ok");
     expect(statusLines(root).join("\n")).toMatch(/luno-dev fail/);
+    expect(statusLines(root).join("\n")).toContain("@luno-cms/mcp@latest");
   });
 
   it("applyEnvToProcess loads into process.env", () => {
