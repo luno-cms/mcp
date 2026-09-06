@@ -21,9 +21,20 @@ export const masterBlueprintRecordSchema = z
       .optional()
       .describe("Parent record value for hierarchical masters"),
     data: z.record(z.string(), z.unknown()).optional().describe("Optional extra JSON"),
+    color: z
+      .union([
+        z.string().regex(/^#[0-9a-fA-F]{6}$/, "color must be #RRGGBB"),
+        z.null(),
+      ])
+      .optional()
+      .describe(
+        "Optional #RRGGBB. Omit keeps existing color (create = none). null clears."
+      ),
   })
   .strict()
-  .describe("Master record row. Agents cannot call update_master_record — set sort_order here.");
+  .describe(
+    "Master record row. Agents cannot call update_master_record — set sort_order and optional color here."
+  );
 
 export const masterBlueprintEntitySchema = z
   .object({

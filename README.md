@@ -176,7 +176,7 @@ One MCP entry = one key. Split by site or scope with different MCP server names.
 | `list_media` | Media list |
 | `upload_media` | Upload (`filePath` / `sourceUrl` / `base64` → asset id) |
 | `list_master_entities` / `get_master_entity` | Master entities |
-| `list_master_records` / `create_master_record` | List / create records (`label` string or `{ default, ja, … }`) |
+| `list_master_records` / `create_master_record` | List / create records (`label` string or `{ default, ja, … }`; optional `color` `#RRGGBB`) |
 | `update_master_record` / `update_master_tree` | Update records / tree (**not available with agent keys** — see below) |
 | `get_project_content_locales` | Content locale settings (includes `content_default_locale`) |
 | `patch_project_content_locales` | Update locales (**tenant_admin JWT only**) |
@@ -194,6 +194,8 @@ One MCP entry = one key. Split by site or scope with different MCP server names.
 **Master update limits:** agent keys have no `userId`; `update_master_record` / `update_master_tree` need a user JWT with `master_record_edit_allowed` or tenant_admin. List / create (`create_master_record`) work with content scope. **Creating master definitions** uses **`apply_master_blueprint` (schema scope)**, not `POST /master-entities`.
 
 **Multilingual master labels:** `label` may be a plain string (default locale) or a locale map. When site multilingual is OFF, only default is stored. Blueprint `record.label` stays a plain string (normalized internally).
+
+**Master record color:** optional `#RRGGBB` on `create_master_record`, `update_master_record` (user JWT), and `apply_master_blueprint` records. Omit keeps an existing color (create = none). `null` clears. `#fff` / named colors are rejected.
 
 **Locale translation:** call `translate_entry_locales` with a content-scope agent key, merge returned `items` into the snapshot, then `save_revision`. Returns 400 if site multilingual is OFF.
 
