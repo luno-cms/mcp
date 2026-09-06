@@ -134,6 +134,7 @@ Issue keys in Console → **Settings → Agent API keys** (per env / per site). 
 | `LUNO_AGENT_KEY` | `sk-agent-…` | Agent API key |
 
 ```text
+npx @luno-cms/mcp --version    # print package version (no MCP start)
 npx @luno-cms/mcp              # start MCP from env vars
 npx @luno-cms/mcp run stg      # load .agents/luno/stg.env then start
 npx @luno-cms/mcp setup

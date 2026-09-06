@@ -13,6 +13,7 @@ import {
   applyEnvToProcess,
   resolveMcpProjectRoot,
 } from "./env-files.js";
+import { isVersionCommand, readPackageVersion } from "./package-version.js";
 import { startLunoMcp } from "./server.js";
 
 function printHelp(): void {
@@ -37,6 +38,7 @@ Commands:
   env switch <env>       Set active env (+ .agents/luno/env)
   env has-key <env>      Exit 0 if a real key is set
   help                   Show this help
+  version | --version    Print @luno-cms/mcp version (does not start MCP)
 
 Examples:
   npx @luno-cms/mcp setup
@@ -138,6 +140,11 @@ async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const projectRoot = cwd();
   const cmd = argv[0];
+
+  if (isVersionCommand(argv)) {
+    console.log(readPackageVersion());
+    return;
+  }
 
   if (!cmd || cmd === "serve") {
     await startLunoMcp();
