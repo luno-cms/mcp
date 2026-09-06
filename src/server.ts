@@ -68,7 +68,7 @@ export function createLunoMcpServer(): McpServer {
   const apiBase = getLunoApiBase();
   getLunoAgentKey();
 
-  const mcp = new McpServer({ name: "luno", version: "0.2.44" });
+  const mcp = new McpServer({ name: "luno", version: "0.2.45" });
   // Soften SDK Zod dumps into actionable agent text (#58).
   const mcpAny = mcp as unknown as {
     createToolError: (errorMessage: string) => {
@@ -632,7 +632,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.apply_master_blueprint,
       outputSchema: TOOL_OUTPUT_SCHEMAS.apply_master_blueprint,
       description:
-        "Master Blueprint を一括 upsert（schema/full）。必須: entities。任意: dryRun, publish（true でサイトに反映し公開マスタ API に載る。省略時は未反映）。各 record の並びは sort_order / sortOrder。エージェントキーでは update_master_record 不可のためここで正しい sort_order を渡す。詳細: agent.master-blueprint-mcp, luno://content/schema-guide",
+        "Master Blueprint を一括 upsert（schema/full）。必須: entities。任意: dryRun, publish（true でサイトに反映し公開マスタ API に載る。省略時は未反映）。各 record の並びは sort_order / sortOrder。任意 color は #RRGGBB（省略は既存色を維持、null で消す）。エージェントキーでは update_master_record 不可のためここで正しい sort_order / color を渡す。詳細: agent.master-blueprint-mcp, luno://content/schema-guide",
       inputSchema: {
         entities: masterBlueprintEntitiesSchema,
         dryRun: z.boolean().optional().describe("true で件数プレビューのみ"),
@@ -897,7 +897,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.create_master_record,
       outputSchema: TOOL_OUTPUT_SCHEMAS.create_master_record,
       description:
-        "マスタレコードを新規作成（content 可）。必須: entityId, label（string または locale map）。任意: value, sortOrder, parentRecordId, data。並びの一括投入は apply_master_blueprint 推奨。",
+        "マスタレコードを新規作成（content 可）。必須: entityId, label（string または locale map）。任意: value, sortOrder, parentRecordId, data, color（#RRGGBB）。並び・色の一括投入は apply_master_blueprint 推奨。",
       inputSchema: {
         entityId: masterEntityIdSchema,
         label: masterRecordLabelSchema.describe("表示ラベル（string または locale map）"),
@@ -908,9 +908,16 @@ export function createLunoMcpServer(): McpServer {
           .optional()
           .describe("親レコード UUID（階層時）"),
         data: z.record(z.string(), z.unknown()).optional().describe("追加 JSON"),
+        color: z
+          .union([
+            z.string().regex(/^#[0-9a-fA-F]{6}$/, "color must be #RRGGBB"),
+            z.null(),
+          ])
+          .optional()
+          .describe("任意の #RRGGBB。省略または null は色なし"),
       },
     },
-    async ({ entityId, label, value, sortOrder, parentRecordId, data }) =>
+    async ({ entityId, label, value, sortOrder, parentRecordId, data, color }) =>
       textResult(
         await lunoJson(`/v1/master-entities/${entityId}/records`, {
           method: "POST",
@@ -920,6 +927,7 @@ export function createLunoMcpServer(): McpServer {
             ...(sortOrder !== undefined ? { sort_order: sortOrder } : {}),
             ...(parentRecordId !== undefined ? { parent_record_id: parentRecordId } : {}),
             ...(data !== undefined ? { data } : {}),
+            ...(color !== undefined ? { color } : {}),
           },
         })
       )
@@ -931,7 +939,7 @@ export function createLunoMcpServer(): McpServer {
       annotations: TOOL_ANNOTATIONS.update_master_record,
       outputSchema: TOOL_OUTPUT_SCHEMAS.update_master_record,
       description:
-        "マスタレコードを更新。必須: entityId, recordId。任意: label, value, sortOrder, parentRecordId, data。**エージェント API キーでは不可**（401 — ユーザ JWT + 編集権限が必要）。identifier（slug / value）の変更は rename_master_record_slug → propose_change。並び替えは apply_master_blueprint の sort_order を使う。",
+        "マスタレコードを更新。必須: entityId, recordId。任意: label, value, sortOrder, parentRecordId, data, color（#RRGGBB。null で消す）。**エージェント API キーでは不可**（401 — ユーザ JWT + 編集権限が必要）。identifier（slug / value）の変更は rename_master_record_slug → propose_change。並び替え・色の一括は apply_master_blueprint を使う。",
       inputSchema: {
         entityId: masterEntityIdSchema,
         recordId: masterRecordIdSchema,
@@ -950,10 +958,17 @@ export function createLunoMcpServer(): McpServer {
         data: z
           .record(z.string(), z.unknown())
           .optional()
-          .describe("追加 JSON。既知キー以外の拡張データ")
+          .describe("追加 JSON。既知キー以外の拡張データ"),
+        color: z
+          .union([
+            z.string().regex(/^#[0-9a-fA-F]{6}$/, "color must be #RRGGBB"),
+            z.null(),
+          ])
+          .optional()
+          .describe("任意の #RRGGBB。null で色を消す"),
       },
     },
-    async ({ entityId, recordId, label, value, sortOrder, parentRecordId, data }) =>
+    async ({ entityId, recordId, label, value, sortOrder, parentRecordId, data, color }) =>
       textResult(
         await lunoJson(`/v1/master-entities/${entityId}/records/${recordId}`, {
           method: "PATCH",
@@ -963,6 +978,7 @@ export function createLunoMcpServer(): McpServer {
             ...(sortOrder !== undefined ? { sort_order: sortOrder } : {}),
             ...(parentRecordId !== undefined ? { parent_record_id: parentRecordId } : {}),
             ...(data !== undefined ? { data } : {}),
+            ...(color !== undefined ? { color } : {}),
           },
         })
       )

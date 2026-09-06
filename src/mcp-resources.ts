@@ -103,7 +103,7 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 - Contact / inquiry / お問い合わせ: \`create_contact_form\` (needs \`recipient_email\`; \`dryRun: true\` first; only if status=ok / wouldSucceed). Not a Form Set template.
 - Content (お知らせ / blog / …): \`list_builtin_form_templates\` → match \`purposeLabels\` → \`apply_builtin_form_template\` (\`dryRun: true\` first; only if status=ok)
 - Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). New slug → \`kind=create\`. Extra field/form on existing slug → \`kind=update\`. Existing textarea→tiptap → \`kind=migrate\`. Mixed type-change+add or other type changes → unsupported.
-- Masters: \`apply_master_blueprint\`
+- Masters: \`apply_master_blueprint\` (optional record \`color\` \`#RRGGBB\`; omit keeps existing)
 - Existing static enum → Master Reference: \`migrate_field_to_master_reference\` (\`dryRun: true\` only) → \`propose_change(action: migrate_field_to_master_reference)\`. Not a Blueprint change.
 - Rename Master Record identifier: \`rename_master_record_slug\` (\`dryRun: true\` only) → \`propose_change(action: rename_master_record_slug)\`. Not \`update_master_record\`.
 
@@ -205,7 +205,7 @@ Legacy \`schema\` scope = same as \`full\` for existing keys.
 - Restore archived Form Sets or deleted entries (tenant_admin human JWT only; 403 \`restore_requires_human_jwt\`)
 - Delete Contact Forms
 - Bulk-delete entries
-- Update/delete master records directly (\`update_master_record\` → 401; use \`apply_master_blueprint\`)
+- Update/delete master records directly (\`update_master_record\` → 401; use \`apply_master_blueprint\`, including optional record \`color\`)
 - Manage webhooks, agent keys, members
 
 ## Destructive: archive_form_set
