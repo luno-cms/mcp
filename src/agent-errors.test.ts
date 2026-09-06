@@ -72,4 +72,35 @@ describe("agent-errors", () => {
     expect(out).toContain("retryable=false");
     expect(out).toContain("VALIDATION_ERROR");
   });
+
+  it("hints capability skew on 404 for newer Admin routes (mcp#48)", () => {
+    const out = formatLunoApiFailure(
+      404,
+      "https://stg-api.luno.rest/admin/v1/schema-migrations/to-master-reference",
+      "Not Found"
+    );
+    expect(out).toContain("get_mcp_runtime");
+    expect(out).toContain("retryable=false");
+    expect(out).toMatch(/older than this MCP|not mean the hosted API/i);
+  });
+
+  it("marks 502 / truncated Help ask as retryable (mcp#53)", () => {
+    const gateway = formatLunoApiFailure(
+      502,
+      "https://stg-api.luno.rest/admin/v1/help/ask",
+      "Bad Gateway"
+    );
+    expect(gateway).toContain("retryable=true");
+    expect(gateway).toContain("search_admin_help");
+
+    const truncated = formatLunoApiFailure(
+      200,
+      "https://stg-api.luno.rest/admin/v1/help/ask",
+      "response truncated after token limit"
+    );
+    // 200 + truncated body still surfaces a retry hint when formatLunoApiFailure is used.
+    expect(truncated).toMatch(/truncat/i);
+    expect(truncated).toContain("retryable=true");
+    expect(truncated).toContain("search_admin_help");
+  });
 });

@@ -141,6 +141,8 @@ npx @luno-cms/mcp setup
 npx @luno-cms/mcp env …
 ```
 
+Generated MCP configs use `npx -y @luno-cms/mcp@latest run <env>` so reconnect fetches the newest publish (avoids a stale unpinned npx cache). Re-run `npx @luno-cms/mcp setup` (or edit mcp.json) if a site still has the unpinned spec, then `/mcp` reconnect — do not hand-bump a version pin. Confirm the running package with `--version` or `get_mcp_runtime`.
+
 MCP server names: `luno-dev` / `luno-stg` / `luno-prod`
 
 ---
@@ -247,7 +249,8 @@ The Console does not send keys. Without a key, behavior is unchanged. After time
 
 | Tool | Admin API |
 |------|-----------|
-| `apply_form_blueprint` | `POST /v1/form-blueprints/apply` (`dryRun: true` preview) |
+| `get_mcp_runtime` | *(local — no Admin call)* package version, tool count, capability contract. Listed tool ≠ hosted API deployed |
+| `apply_form_blueprint` | `POST /v1/form-blueprints/apply` (`dryRun: true` preview). Trust returned `status` / `wouldSucceed` / `kind` — do not assume existing-slug field add is `kind=update` |
 | `validate_master_blueprint` | `POST /v1/master-blueprints/validate` |
 | `apply_master_blueprint` | `POST /v1/master-blueprints/apply` (`dryRun: true` count preview; success `records[]` with id/value) |
 | `migrate_field_to_master_reference` | `POST /v1/schema-migrations/to-master-reference` (**`dryRun: true` required**. Preview only — execute via `propose_change`) |
@@ -294,11 +297,11 @@ Published entry JSON includes `published.mediaUrls` (asset id → CDN URL) under
 
 `apply_form_blueprint`, `apply_master_blueprint`, `apply_builtin_form_template`, `archive_form_set`, `create_contact_form`, `migrate_field_to_master_reference`, and `rename_master_record_slug` accept `dryRun: true` for a **no-write** preview. Real agent `archive_form_set` runs require the **`confirmToken`** from dryRun. Contact Form delete is still human-only — do not skip dryRun. `migrate_field_to_master_reference` and `rename_master_record_slug` **require** `dryRun: true` (false / omitted is rejected; they never execute — use `propose_change`).
 
-- Form Blueprint: `operations` list  
+- Form Blueprint: `operations` list. `kind=create` / `kind=update` / `kind=migrate` only when dryRun returns that. Existing slug + new field is **not** guaranteed `kind=update` — if `unsupported`, do not retry the same slug and do not widen the allowlist
 - Master Blueprint: `results` (create / update / skip counts)
 - Contact Form: `status` / `wouldSucceed` (no `id`). Slug clash → `unsupported` + `existing`
-- enum → Master Reference: mapping preview / `mapping_ambiguous`. Execute only after human Change Plan approval
-- Master Record slug rename: `preview.changedEntryCount`. Execute only after human Change Plan approval
+- enum → Master Reference: mapping preview / `mapping_ambiguous`. Execute only after human Change Plan approval. Snapshot values become Master `value` (e.g. `日常` → `daily`); hardcoded frontend compares are a **separate** change. dryRun success ≠ frontend done. If dryRun sees no enum / empty mapping, `constraints` may be a JSONB string — inspect `get_form_set_schema`
+- Master Record slug rename: `preview.changedEntryCount`. Execute only after human Change Plan approval. Execute may renormalize `sort_order` on **other** records in the same entity — inspect dryRun preview before proposing
 
 ```json
 { "dryRun": true, "operations": [{ "op": "create_form_set", "slug": "blog", "name": "Blog" }, "..."] }

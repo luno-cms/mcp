@@ -269,7 +269,7 @@ export function statusLines(projectRoot: string): string[] {
     "* fail = key missing — server may show failed in the client until env set-key."
   );
   lines.push(
-    "If tools are missing: reopen the project / reload MCP after setup; confirm .mcp.json points at `npx -y @luno-cms/mcp run <env>`."
+    "If tools are missing: reopen the project / reload MCP after setup; confirm .mcp.json points at `npx -y @luno-cms/mcp@latest run <env>`. After an npm publish, reconnect MCP (`/mcp` or Reload) — do not rely on an unpinned npx cache, and do not hand-bump a version pin."
   );
   return lines;
 }

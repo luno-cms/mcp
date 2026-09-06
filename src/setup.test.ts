@@ -27,7 +27,7 @@ describe("writeAgentConfig", () => {
     writeAgentConfig(root, "claude");
     expect(existsSync(join(root, ".claude", "skills", "luno", "SKILL.md"))).toBe(true);
     const mcp = JSON.parse(readFileSync(join(root, ".mcp.json"), "utf8"));
-    expect(mcp.mcpServers["luno-stg"].args).toContain("stg");
+    expect(mcp.mcpServers["luno-stg"].args).toEqual(["-y", "@luno-cms/mcp@latest", "run", "stg"]);
   });
 
   it("writes Cursor skill + mcp.json", () => {

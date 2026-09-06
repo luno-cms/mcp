@@ -28,7 +28,7 @@ describe("codexMcpAddArgv", () => {
         "--",
         "npx",
         "-y",
-        "@luno-cms/mcp",
+        "@luno-cms/mcp@latest",
         "run",
         "stg",
       ],

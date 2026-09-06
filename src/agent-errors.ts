@@ -1,3 +1,5 @@
+import { isCapabilitySensitiveApiUrl } from "./mcp-runtime.js";
+
 /**
  * Format Management API / Zod failures for agents (#58).
  */
@@ -76,6 +78,7 @@ export function formatLunoApiFailure(
   } catch {
     parsed = null;
   }
+  const extras = extraFailureHints(status, url, bodyText);
   const err = parsed?.error;
   if (err && typeof err === "object") {
     const message =
@@ -83,9 +86,9 @@ export function formatLunoApiFailure(
         ? err.message
         : bodyText.slice(0, 400);
     const hint =
-      typeof err.hint === "string" && err.hint.length > 0 ? err.hint : undefined;
+      typeof err.hint === "string" && err.hint.length > 0 ? err.hint : extras.hint;
     const retryable =
-      typeof err.retryable === "boolean" ? err.retryable : undefined;
+      typeof err.retryable === "boolean" ? err.retryable : extras.retryable;
     const code = typeof err.code === "string" ? err.code : undefined;
     const fieldErrors = err.meta?.fields;
     const fieldsLine =
@@ -94,12 +97,15 @@ export function formatLunoApiFailure(
             .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join("; ") : String(v)}`)
             .join("; ")
         : "";
+    const extraHint =
+      extras.hint && extras.hint !== hint ? extras.hint : null;
     const lines = [
       `LUNO API ${status} ${url}`,
       code ? `code=${code}` : null,
       `message=${message}`,
       fieldsLine ? `fields=${fieldsLine}` : null,
       hint ? `hint=${hint}` : null,
+      extraHint ? `hint=${extraHint}` : null,
       retryable === false
         ? "retryable=false (change input before retrying)"
         : retryable === true
@@ -108,5 +114,32 @@ export function formatLunoApiFailure(
     ].filter(Boolean);
     return lines.join("\n");
   }
-  return `LUNO API ${status} ${url}: ${bodyText.slice(0, 800)}`;
+  const fallback = [`LUNO API ${status} ${url}: ${bodyText.slice(0, 800)}`];
+  if (extras.hint) fallback.push(`hint=${extras.hint}`);
+  if (extras.retryable === true) fallback.push("retryable=true");
+  if (extras.retryable === false) fallback.push("retryable=false (change input before retrying)");
+  return fallback.join("\n");
+}
+
+function extraFailureHints(
+  status: number,
+  url: string,
+  bodyText: string
+): { hint?: string; retryable?: boolean } {
+  if (status === 404 && isCapabilitySensitiveApiUrl(url)) {
+    return {
+      hint: "This Admin API may be older than this MCP package. Call get_mcp_runtime (no LUNO write) and compare contract[]. A listed MCP tool does not mean the hosted API is deployed. Do not invent a substitute mutation.",
+      retryable: false,
+    };
+  }
+  const truncated = /truncat/i.test(bodyText);
+  if (status === 502 || status === 503 || status === 504 || truncated) {
+    return {
+      hint: truncated
+        ? "Help/LLM response may be truncated or the gateway timed out. Retry ask_admin_help once; if it fails again use search_admin_help / get_admin_help_article."
+        : "Gateway error (often Help ask). Retry ask_admin_help once; if it persists use search_admin_help / get_admin_help_article.",
+      retryable: true,
+    };
+  }
+  return {};
 }

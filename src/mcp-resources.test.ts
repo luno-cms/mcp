@@ -53,8 +53,10 @@ describe("mcp resources catalog", () => {
     expect(schema?.body).toContain("recipient_email`; `dryRun: true` first");
     expect(schema?.body).toContain("purposeLabels");
     expect(schema?.body).toContain("kind=update");
+    expect(schema?.body).toContain("wouldSucceed");
     expect(schema?.body).toContain("migrate_field_to_master_reference");
     expect(schema?.body).toContain("rename_master_record_slug");
+    expect(schema?.body).toContain("sort_order");
   });
 
   it("field-types routes enum→Master through migrate_field_to_master_reference", () => {
@@ -62,5 +64,13 @@ describe("mcp resources catalog", () => {
     expect(fieldTypes?.body).toContain("migrate_field_to_master_reference");
     expect(fieldTypes?.body).toMatch(/enum.*Master|Master Reference/i);
     expect(fieldTypes?.body).toContain("rename_master_record_slug");
+    expect(fieldTypes?.body).toMatch(/JSONB|frontend/i);
+    expect(fieldTypes?.body).toMatch(/dryRun success|フロント完了/i);
+  });
+
+  it("documents mcp runtime capability skew", () => {
+    const runtime = LUNO_MCP_RESOURCES.find((r) => r.uri === "luno://mcp/runtime");
+    expect(runtime?.body).toContain("get_mcp_runtime");
+    expect(runtime?.body).toMatch(/does \*\*not\*\* mean|listed here does/);
   });
 });

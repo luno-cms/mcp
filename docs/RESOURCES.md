@@ -13,6 +13,7 @@
 | `luno://publishing-guide` | publishing-guide | Draft → publish, `can_publish`, public API |
 | `luno://permissions` | permissions | Agent scopes, blocked actions, archive token |
 | `luno://api-reference` | api-reference | Tool cheat sheet (not OpenAPI dump) |
+| `luno://mcp/runtime` | mcp-runtime | This package vs hosted API capability (see also `get_mcp_runtime`) |
 
 Implementation: `src/mcp-resources.ts` → `registerMcpResources()` in `src/server.ts`.
 

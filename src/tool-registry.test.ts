@@ -85,8 +85,8 @@ async function closePair(
 describe("MCP tool registry (mcp#15)", () => {
   it("lists every registered tool exactly once (T0)", () => {
     const names = TOOL_REGISTRY.map((r) => r.name);
-    expect(names).toHaveLength(51);
-    expect(new Set(names).size).toBe(51);
+    expect(names).toHaveLength(52);
+    expect(new Set(names).size).toBe(52);
     expect([...names].sort()).toEqual(Object.keys(TOOL_ANNOTATIONS).sort());
   });
 
@@ -110,7 +110,7 @@ describe("MCP tool registry (mcp#15)", () => {
     try {
       const listed = await client.listTools();
       const byName = new Map(listed.tools.map((t) => [t.name, t]));
-      expect(listed.tools).toHaveLength(51);
+      expect(listed.tools).toHaveLength(52);
       const missing: string[] = [];
       for (const row of TOOL_REGISTRY) {
         const tool = byName.get(row.name);

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import quote from "shell-quote/quote.js";
+import { LUNO_MCP_NPX_SPEC } from "./mcp-package-spec.js";
 import { skillTemplatePath } from "./package-root.js";
 
 export type AgentKind = "claude" | "cursor" | "codex";
@@ -17,15 +18,15 @@ function mcpJsonContent(): string {
       mcpServers: {
         "luno-dev": {
           command: "npx",
-          args: ["-y", "@luno-cms/mcp", "run", "dev"],
+          args: ["-y", LUNO_MCP_NPX_SPEC, "run", "dev"],
         },
         "luno-stg": {
           command: "npx",
-          args: ["-y", "@luno-cms/mcp", "run", "stg"],
+          args: ["-y", LUNO_MCP_NPX_SPEC, "run", "stg"],
         },
         "luno-prod": {
           command: "npx",
-          args: ["-y", "@luno-cms/mcp", "run", "prod"],
+          args: ["-y", LUNO_MCP_NPX_SPEC, "run", "prod"],
         },
       },
     },
@@ -48,7 +49,7 @@ export function codexTomlFragment(projectRoot: string): string {
       "",
       `[mcp_servers.luno-${env}]`,
       'command = "npx"',
-      `args = ["-y", "@luno-cms/mcp", "run", "${env}"]`,
+      `args = ["-y", "${LUNO_MCP_NPX_SPEC}", "run", "${env}"]`,
       `cwd = "${quoteTomlString(abs)}"`
     );
   }
@@ -89,7 +90,7 @@ export function codexMcpAddArgv(projectRoot: string): CodexMcpAdd[] {
       "--",
       "npx",
       "-y",
-      "@luno-cms/mcp",
+      LUNO_MCP_NPX_SPEC,
       "run",
       env,
     ],

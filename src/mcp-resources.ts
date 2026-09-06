@@ -46,6 +46,10 @@ There is no field type named \`enum\` or \`master reference\`. Only the source o
 
 To migrate an existing static enum to a Master Reference, use \`migrate_field_to_master_reference\` (\`dryRun: true\` required) then \`propose_change(action: migrate_field_to_master_reference)\`. Do **not** use \`apply_form_blueprint\` for this migration.
 
+If dryRun reports no enum / empty mapping, \`constraints\` may be a JSONB string rather than a parsed array — inspect with \`get_form_set_schema\` (backend parse is a hosted LUNO fix).
+
+After a successful migration, snapshot values become Master record **\`value\`** strings (e.g. \`日常\` → \`daily\`). Hardcoded frontend / widget comparisons need a **separate** change. dryRun success ≠ frontend done.
+
 To rename a Master Record identifier (public name \`slug\`, compat \`value\`), use \`rename_master_record_slug\` (\`dryRun: true\` required) then \`propose_change(action: rename_master_record_slug)\`. Do **not** PATCH \`update_master_record\`.
 
 Before \`save_revision\`, call \`get_form_set_schema\` for \`snapshotShape\`, \`masterEntityKey\`, \`sampleValues\`.
@@ -102,10 +106,10 @@ Top-level keys = **form.key** (not Form Set slug). Inner keys = **field_key** (n
 
 - Contact / inquiry / お問い合わせ: \`create_contact_form\` (needs \`recipient_email\`; \`dryRun: true\` first; only if status=ok / wouldSucceed). Not a Form Set template.
 - Content (お知らせ / blog / …): \`list_builtin_form_templates\` → match \`purposeLabels\` → \`apply_builtin_form_template\` (\`dryRun: true\` first; only if status=ok)
-- Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). New slug → \`kind=create\`. Extra field/form on existing slug → \`kind=update\`. Existing textarea→tiptap → \`kind=migrate\`. Mixed type-change+add or other type changes → unsupported.
+- Custom structure: \`apply_form_blueprint\` (\`dryRun: true\` first). Trust returned \`status\` / \`wouldSucceed\` / \`kind\`. New slug often \`kind=create\`. Extra field/form on existing slug **may** be \`kind=update\` — only if dryRun says so. Do not retry the same slug when \`unsupported\`. Existing textarea→tiptap is \`kind=migrate\` only when dryRun returns that. Mixed type-change+add or other type changes → unsupported.
 - Masters: \`apply_master_blueprint\` (optional record \`color\` \`#RRGGBB\`; omit keeps existing)
-- Existing static enum → Master Reference: \`migrate_field_to_master_reference\` (\`dryRun: true\` only) → \`propose_change(action: migrate_field_to_master_reference)\`. Not a Blueprint change.
-- Rename Master Record identifier: \`rename_master_record_slug\` (\`dryRun: true\` only) → \`propose_change(action: rename_master_record_slug)\`. Not \`update_master_record\`.
+- Existing static enum → Master Reference: \`migrate_field_to_master_reference\` (\`dryRun: true\` only) → \`propose_change(action: migrate_field_to_master_reference)\`. Not a Blueprint change. Snapshot values become Master \`value\`; site/widget hardcoded compares are a separate change. If dryRun sees no enum, check JSONB \`constraints\` via \`get_form_set_schema\`.
+- Rename Master Record identifier: \`rename_master_record_slug\` (\`dryRun: true\` only) → \`propose_change(action: rename_master_record_slug)\`. Not \`update_master_record\`. Execute may renormalize \`sort_order\` on other records in the same entity — inspect dryRun preview.
 
 **IDs:** MCP tools use UUIDs (\`formSetId\`, \`entryId\`). Public API uses slugs.
 
@@ -282,8 +286,25 @@ JSON \`{ "error": { "code", "message" } }\`. Common: \`VALIDATION_ERROR\` (Conta
 - \`luno://publishing-guide\`
 - \`luno://permissions\`
 - \`luno://api-reference\` (this document)
+- \`luno://mcp/runtime\`
 
 Prefer Resources + \`get_form_set_schema\` over exploratory tool spam.
+`;
+
+const MCP_RUNTIME_BODY = `# MCP runtime (this package)
+
+Call tool \`get_mcp_runtime\` (no arguments, **no LUNO write**) for a live snapshot:
+
+- \`mcpVersion\` — installed \`@luno-cms/mcp\` version (\`package.json\`)
+- \`toolCount\` — tools registered in this process
+- \`apiBase\` — configured \`LUNO_API_URL\` (not probed)
+- \`contract[]\` — capability-sensitive tool → Admin API path (\`sinceMcp\` when known)
+
+A tool listed here does **not** mean the hosted Admin API has deployed that route. \`404\` on a contract path usually means the API is older than this MCP. Do not invent a substitute mutation (\`update_field\`, widening Blueprint, self-approving a Change Plan).
+
+After an npm publish, reconnect MCP. Generated configs use \`npx -y @luno-cms/mcp@latest run <env>\` so reconnect fetches the newest package. Do not hand-bump a version pin.
+
+Related: \`get_project_overview\` for tenant state; this resource for package/API skew.
 `;
 
 export const LUNO_MCP_RESOURCES: McpResourceDef[] = [
@@ -316,6 +337,12 @@ export const LUNO_MCP_RESOURCES: McpResourceDef[] = [
     uri: "luno://api-reference",
     description: "Lightweight Admin/Public API orientation for agents (not full OpenAPI)",
     body: API_REFERENCE_BODY,
+  },
+  {
+    name: "mcp-runtime",
+    uri: "luno://mcp/runtime",
+    description: "This MCP package version vs hosted Admin API capability (no LUNO call)",
+    body: MCP_RUNTIME_BODY,
   },
 ];
 

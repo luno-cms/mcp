@@ -120,11 +120,29 @@ export const deletedOutputSchema = z.object({
   deleted: z.string().describe("Deleted IP allowlist rule UUID"),
 });
 
+export const mcpRuntimeOutputSchema = z.object({
+  package: z.string().describe("npm package name"),
+  mcpVersion: z.string().describe("This installed @luno-cms/mcp version"),
+  toolCount: z.number().int().describe("Registered MCP tools in this process"),
+  apiBase: z.string().describe("Configured LUNO_API_URL (not probed)"),
+  contract: z
+    .array(
+      z.object({
+        tool: z.string(),
+        api: z.string().describe("Admin API method + path"),
+        sinceMcp: z.string().optional().describe("First MCP version that shipped the tool"),
+      })
+    )
+    .describe("Capability-sensitive tools; listed ≠ hosted API deployed"),
+  note: z.string(),
+});
+
 const A = adminObjectOutputSchema;
 
 export const TOOL_OUTPUT_SCHEMAS = {
   get_tenant_schema: A,
   get_project_overview: A,
+  get_mcp_runtime: mcpRuntimeOutputSchema,
   list_form_sets: A,
   get_form_set_schema: formSetSchemaOutputSchema,
   get_public_api_info: publicApiInfoOutputSchema,
