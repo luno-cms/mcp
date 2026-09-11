@@ -65,12 +65,14 @@ Directory checklist: [docs/DISCOVERY.md](./docs/DISCOVERY.md)
 
 ## Quick start (recommended)
 
-From your **site repository root**, pick **one** AI agent and run setup (Claude Code / Cursor / Codex):
+From your **site repository root**, pick **one** AI agent and run setup (Claude Code / Cursor / Codex). The CLI asks for the agent API key (input is hidden). Do not paste the key into the agent chat.
 
 ```bash
 cd my-site
 npx @luno-cms/mcp setup
-# → 1) Claude Code  2) Cursor  3) Codex
+# → lists agents found on this machine (or pass --agent claude|cursor|codex)
+# → Agent API key (sk-agent-…, input hidden)
+# → healthcheck against production (https://api.luno.rest/admin)
 ```
 
 | Choice | What gets written |
@@ -79,14 +81,13 @@ npx @luno-cms/mcp setup
 | Cursor | `.cursor/skills/luno/` + `.cursor/mcp.json` |
 | Codex | `.agents/skills/luno/` + `.codex/config.toml` |
 
-Shared: `.agents/luno/{dev,stg,prod}.env` (keys; gitignored)
+Shared: `.agents/luno/{dev,stg,prod}.env` (keys; gitignored). Public default is **prod** (`luno-prod`). `dev` / `stg` stay on disk for explicit `setup --env stg` / `run stg` / `env switch stg`.
 
 Then:
 
 1. Open the project in the chosen agent  
-2. Run `/luno` (Codex: equivalent luno skill)  
-3. Paste an `sk-agent-…` key from the LUNO Console  
-4. Ask to create content — the agent uses MCP servers such as `luno-stg`
+2. Approve workspace trust / MCP if prompted  
+3. Ask: `What's connected on this LUNO?`
 
 **Verified clients:** Claude Code / Cursor / Codex (Golden Path E2E).
 
@@ -95,23 +96,23 @@ Then:
 | Client | Notes |
 |--------|-------|
 | Claude Code | If tools are missing, reconnect (`/mcp`) |
-| Cursor | Settings → MCP: enable `luno-stg`. Start a new Agent chat if needed |
-| Codex | Project `.codex/config.toml` (with `cwd`) plus home config: Codex prefers **`~/.codex/config.toml`**, so setup prints `codex mcp add` (with `LUNO_PROJECT_ROOT`) and guides home registration. Check: `codex mcp list` (`luno-stg`, etc.). First MCP tool calls may need **approval**. Prefer **`luno-stg`** day-to-day |
+| Cursor | Settings → MCP: enable `luno-prod`. Start a new Agent chat if needed |
+| Codex | Project `.codex/config.toml` (with `cwd`) plus home config: Codex prefers **`~/.codex/config.toml`**, so setup may offer `codex mcp add` (with `LUNO_PROJECT_ROOT`). Check: `codex mcp list` (`luno-prod`, etc.). First MCP tool calls may need **approval**. Prefer **`luno-prod`** |
 
-```text
-/luno                 first run (init optional)
-/luno init-stg        initialize stg only
-/luno dev|stg|prod    switch env (prompts for key if missing)
-/luno status
-```
+`/luno` is an optional shortcut after setup. It is not required, and it must not ask for a key.
 
 Non-interactive:
 
 ```bash
-npx @luno-cms/mcp setup --agent claude --yes
-npx @luno-cms/mcp env set-key stg 'sk-agent-…'
-npx @luno-cms/mcp env switch stg
+npx @luno-cms/mcp setup --agent claude --yes --key 'sk-agent-…'
 npx @luno-cms/mcp env status
+```
+
+Explicit staging (internal / Benchmark / Partner only):
+
+```bash
+npx @luno-cms/mcp setup --env stg --key 'sk-agent-…'
+npx @luno-cms/mcp run stg
 ```
 
 Issue keys in Console → **Settings → Agent API keys** (per env / per site). Default scope **full** (content + form definitions). Use **content** to restrict to articles only.
@@ -130,13 +131,13 @@ Issue keys in Console → **Settings → Agent API keys** (per env / per site). 
 
 | Variable | Example | Description |
 |----------|---------|-------------|
-| `LUNO_API_URL` | `http://127.0.0.1:8787/admin` | Admin API base (include `/admin`) |
+| `LUNO_API_URL` | `https://api.luno.rest/admin` | Admin API base (include `/admin`) |
 | `LUNO_AGENT_KEY` | `sk-agent-…` | Agent API key |
 
 ```text
 npx @luno-cms/mcp --version    # print package version (no MCP start)
 npx @luno-cms/mcp              # start MCP from env vars
-npx @luno-cms/mcp run stg      # load .agents/luno/stg.env then start
+npx @luno-cms/mcp run prod     # load .agents/luno/prod.env then start
 npx @luno-cms/mcp setup
 npx @luno-cms/mcp env …
 ```

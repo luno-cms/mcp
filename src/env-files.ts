@@ -212,9 +212,9 @@ export function setUrl(projectRoot: string, env: LunoEnvName, url: string): stri
 export function getActiveEnv(projectRoot: string): LunoEnvName {
   migrateLegacyCursorEnv(projectRoot);
   const path = activeFilePath(projectRoot);
-  if (!existsSync(path)) return "stg";
+  if (!existsSync(path)) return "prod";
   const raw = readFileSync(path, "utf8").trim();
-  return isLunoEnvName(raw) ? raw : "stg";
+  return isLunoEnvName(raw) ? raw : "prod";
 }
 
 export function switchEnv(projectRoot: string, env: LunoEnvName): void {
@@ -238,7 +238,7 @@ export function applyEnvToProcess(projectRoot: string, env: LunoEnvName): void {
   const { url, key } = readProjectEnv(projectRoot, env);
   if (isPlaceholderKey(key)) {
     throw new Error(
-      `Set a real LUNO_AGENT_KEY in ${envFilePath(projectRoot, env)} (or run /luno ${env})`
+      `Set a real LUNO_AGENT_KEY in ${envFilePath(projectRoot, env)} (npx @luno-cms/mcp setup --env ${env} --key …)`
     );
   }
   process.env.LUNO_API_URL = url;
@@ -264,7 +264,8 @@ export function statusLines(projectRoot: string): string[] {
   }
   lines.push("");
   lines.push("MCP servers: luno-dev / luno-stg / luno-prod (always defined)");
-  lines.push(`Prefer tools from luno-${active} when active is set.`);
+  lines.push(`Public default is prod. Prefer tools from luno-${active} when active is set.`);
+  lines.push("dev / stg stay available via `env switch <env>` / `run <env>` when you have access.");
   lines.push(
     "* fail = key missing — server may show failed in the client until env set-key."
   );
