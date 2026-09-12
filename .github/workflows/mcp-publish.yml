@@ -41,13 +41,40 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - name: Publish to npm
-        run: pnpm publish --access public --no-git-checks
+        run: |
+          VER="$(node -p "require('./package.json').version")"
+          if npm view "@luno-cms/mcp@${VER}" version >/dev/null 2>&1; then
+            echo "@luno-cms/mcp@${VER} already on npm; skip publish"
+          else
+            pnpm publish --access public --no-git-checks
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Wait until npm lists this version
+        run: |
+          VER="$(node -p "require('./package.json').version")"
+          for i in 1 2 3 4 5 6 7 8; do
+            if npm view "@luno-cms/mcp@${VER}" version >/dev/null 2>&1; then
+              echo "npm has @luno-cms/mcp@${VER}"
+              exit 0
+            fi
+            echo "waiting for npm ($i)"
+            sleep 15
+          done
+          echo "npm still missing @luno-cms/mcp@${VER}"
+          exit 1
       - name: Install mcp-publisher
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
       - name: Authenticate to MCP Registry
         run: ./mcp-publisher login github-oidc
       - name: Publish to MCP Registry
-        run: ./mcp-publisher publish
+        run: |
+          for i in 1 2 3; do
+            if ./mcp-publisher publish; then
+              exit 0
+            fi
+            echo "registry publish failed ($i); retry"
+            sleep 20
+          done
+          exit 1
