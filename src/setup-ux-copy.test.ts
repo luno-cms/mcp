@@ -27,4 +27,14 @@ describe("public setup copy (mcp#55 P0)", () => {
     expect(skill).not.toMatch(/まず `\/luno`/);
     expect(skill).toMatch(/luno-prod/);
   });
+
+  it("skill and README send expired / teammate auth to login, not chat", () => {
+    const skill = read("templates/skill/SKILL.md");
+    const readme = read("README.md");
+    const help = read("src/cli.ts");
+    expect(skill).toMatch(/npx -y @luno-cms\/mcp login/);
+    expect(skill).toMatch(/401|期限切れ|プレースホルダ/);
+    expect(readme).toMatch(/npx @luno-cms\/mcp login/);
+    expect(help).toMatch(/login \[--key KEY\]/);
+  });
 });

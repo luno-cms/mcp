@@ -101,10 +101,20 @@ Then:
 
 `/luno` is an optional shortcut after setup. It is not required, and it must not ask for a key.
 
+After a teammate clones (`.mcp.json` is there, keys are not):
+
+```bash
+npx @luno-cms/mcp login
+# or: npx @luno-cms/mcp login --key 'sk-agent-…'
+```
+
+`login` refreshes `.agents/luno/<env>.env` only. It does not rewrite MCP config. Use the same command for expired keys or 401. First-time machines still run `setup`.
+
 Non-interactive:
 
 ```bash
 npx @luno-cms/mcp setup --agent claude --yes --key 'sk-agent-…'
+npx @luno-cms/mcp login --key 'sk-agent-…'
 npx @luno-cms/mcp env status
 ```
 
