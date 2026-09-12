@@ -37,4 +37,13 @@ describe("public setup copy (mcp#55 P0)", () => {
     expect(readme).toMatch(/npx @luno-cms\/mcp login/);
     expect(help).toMatch(/login \[--key KEY\]/);
   });
+
+  it("README first ask is a read or draft, not publish (luno#214)", () => {
+    const readme = read("README.md");
+    expect(readme).toMatch(/List the form sets on this LUNO, or draft one entry/i);
+    expect(readme).toMatch(/Don't publish/i);
+    expect(readme).not.toMatch(/Ask: `What's connected on this LUNO\?`/);
+    expect(readme).toMatch(/npx @luno-cms\/mcp login/);
+    expect(readme).toMatch(/--env stg/);
+  });
 });

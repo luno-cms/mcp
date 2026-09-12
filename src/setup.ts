@@ -3,6 +3,7 @@ import { stdin as input, stdout as processStdout } from "node:process";
 import {
   agentLabel,
   isAgentKind,
+  afterFirstSuccessHint,
   nextSteps,
   type AgentKind,
   writeAgentConfig,
@@ -235,7 +236,6 @@ export async function runSetup(opts: SetupOptions): Promise<void> {
   output.write(`LUNO setup → ${agentLabel(agent)}\n`);
   output.write(`\nConnected: ${env} OK\n`);
   output.write(`Env file: ${envFilePath(projectRoot, env)}\n`);
-  output.write("(dev / stg: `npx @luno-cms/mcp setup --env stg` when you have access)\n");
   output.write("\nAgent files:\n");
   for (const f of result.files) {
     output.write(`  [${f.action}] ${f.path}\n`);
@@ -244,6 +244,7 @@ export async function runSetup(opts: SetupOptions): Promise<void> {
   for (const step of nextSteps(agent)) {
     output.write(`  • ${step}\n`);
   }
+  output.write(`\n${afterFirstSuccessHint()}\n`);
   output.write("\nKeys stay in .agents/luno/ (gitignored).\n");
 
   if (agent === "codex") {

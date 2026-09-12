@@ -87,7 +87,9 @@ Then:
 
 1. Open the project in the chosen agent  
 2. Approve workspace trust / MCP if prompted  
-3. Ask: `What's connected on this LUNO?`
+3. Ask: `List the form sets on this LUNO, or draft one entry. Don't publish or change the schema.`
+
+Later: teammates run `npx @luno-cms/mcp login`. Use `--env stg` only if you have access.
 
 **Verified clients:** Claude Code / Cursor / Codex (Golden Path E2E).
 
