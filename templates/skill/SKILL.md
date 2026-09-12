@@ -1,6 +1,6 @@
 ---
 name: luno
-description: Work with a connected LUNO project via MCP (luno-prod by default). Use when the user wants to build, operate, or inspect a LUNO backend. If MCP is disconnected, send them back to `npx @luno-cms/mcp setup`.
+description: Work with a connected LUNO project via MCP (luno-prod by default). Use when the user wants to build, operate, or inspect a LUNO backend. If MCP is disconnected, send them to `npx @luno-cms/mcp setup`. If 401 / expired / placeholder, send them to `npx @luno-cms/mcp login`.
 argument-hint: "[status|prod|stg|dev|help]"
 ---
 
@@ -12,16 +12,19 @@ argument-hint: "[status|prod|stg|dev|help]"
 
 ## 未接続のとき
 
-ツールが無い・401・キー未設定なら、キーを聞かない。次を案内して止まる。
+キーを聞かない。チャットに `sk-agent-` を出させない。
+
+- **設定ファイルが無い**（初回）→ `npx -y @luno-cms/mcp setup`
+- **401・期限切れ・プレースホルダ・clone 後にキーだけ無い** → `npx -y @luno-cms/mcp login`（MCP 設定は作り直さない）
 
 ```bash
-npx -y @luno-cms/mcp setup
+npx -y @luno-cms/mcp login
 ```
 
 明示環境（アクセスがある人だけ）:
 
 ```bash
-npx -y @luno-cms/mcp setup --env stg --key 'sk-agent-…'
+npx -y @luno-cms/mcp login --env stg
 ```
 
 JSON の手書きや `.mcp.json` 解説を主経路にしない。
@@ -45,13 +48,13 @@ dev / stg は消さない。ユーザーが明示したときだけ使う。
 |------|------|
 | （空） | 接続済み前提でユーザーの依頼を進める |
 | `status` | `npx -y @luno-cms/mcp env status` を説明 |
-| `prod` / `stg` / `dev` | `env has-key` が成功なら `env switch`。失敗なら setup へ戻す（キーを聞かない） |
+| `prod` / `stg` / `dev` | `env has-key` が成功なら `env switch`。失敗なら login へ（設定が無ければ setup。キーを聞かない） |
 | `help` または不明 | 下の使い方。推測でコマンドを増やさない |
 
 ```text
 /luno              作業を続ける（接続済み前提）
 /luno status       状態表示
-/luno prod|stg|dev 環境切替（キーが無ければ setup へ）
+/luno prod|stg|dev 環境切替（キーが無ければ login へ）
 ```
 
 `/luno` はショートカット。入場券ではない。

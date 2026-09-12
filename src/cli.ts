@@ -31,6 +31,9 @@ Commands:
   setup [--agent NAME] [--key KEY] [--env prod|stg|dev]
                          Register skill + MCP, save key, healthcheck (default env: prod).
                          Interactive agent list is detected CLIs / apps only.
+  login [--key KEY] [--env prod|stg|dev]
+                         Refresh the agent key only. Does not rewrite MCP config.
+                         After clone or 401, prefer this over setup.
   env bootstrap          Create .agents/luno/{dev,stg,prod}.env if missing
   env status             Show active env and key status
   env active             Print active env
@@ -43,6 +46,7 @@ Commands:
 
 Examples:
   npx @luno-cms/mcp setup
+  npx @luno-cms/mcp login --key sk-agent-…
   npx @luno-cms/mcp setup --agent claude --yes --key sk-agent-…
   npx @luno-cms/mcp env set-key stg sk-agent-…   # explicit staging
   npx @luno-cms/mcp run prod
@@ -157,6 +161,18 @@ async function main(): Promise<void> {
       overwrite: flags.overwrite,
       key: flags.key,
       env: flags.env,
+    });
+    return;
+  }
+
+  if (cmd === "login") {
+    const { runLogin, parseLoginFlags } = await import("./login.js");
+    const flags = parseLoginFlags(argv.slice(1));
+    await runLogin({
+      projectRoot,
+      key: flags.key,
+      env: flags.env,
+      yes: flags.yes,
     });
     return;
   }
