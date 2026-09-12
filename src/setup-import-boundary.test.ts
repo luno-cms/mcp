@@ -47,5 +47,7 @@ describe("stdio server import boundary (mcp#14)", () => {
     expect(src).not.toMatch(/from\s+"\.\/setup\.js"/);
     expect(src).not.toMatch(/from\s+"\.\/codex-home-register\.js"/);
     expect(src).toMatch(/import\(\s*"\.\/setup\.js"\s*\)/);
+    expect(src).not.toMatch(/from\s+"\.\/login\.js"/);
+    expect(src).toMatch(/import\(\s*"\.\/login\.js"\s*\)/);
   });
 });
