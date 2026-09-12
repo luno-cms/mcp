@@ -210,19 +210,27 @@ export function agentLabel(agent: AgentKind): string {
   }
 }
 
+/** Public first ask after setup. Read or draft only — not publish. */
+export const FIRST_SUCCESS_PROMPT =
+  "List the form sets on this LUNO, or draft one entry. Don't publish or change the schema.";
+
+export function afterFirstSuccessHint(): string {
+  return "Later: teammates run `npx @luno-cms/mcp login`. Use `--env stg` only if you have access.";
+}
+
 export function nextSteps(agent: AgentKind): string[] {
   switch (agent) {
     case "claude":
       return [
-        "Open Claude Code, approve workspace trust if prompted, then ask: \"What's connected on this LUNO?\"",
+        `Open Claude Code, approve workspace trust if prompted, then ask: "${FIRST_SUCCESS_PROMPT}"`,
       ];
     case "cursor":
       return [
-        "Open this folder in Cursor, approve MCP / workspace trust if prompted, then ask: \"What's connected on this LUNO?\"",
+        `Open this folder in Cursor, approve MCP / workspace trust if prompted, then ask: "${FIRST_SUCCESS_PROMPT}"`,
       ];
     case "codex":
       return [
-        "Start Codex in this folder, approve project trust if prompted, then ask: \"What's connected on this LUNO?\"",
+        `Start Codex in this folder, approve project trust if prompted, then ask: "${FIRST_SUCCESS_PROMPT}"`,
       ];
   }
 }

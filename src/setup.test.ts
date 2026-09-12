@@ -90,6 +90,15 @@ describe("nextSteps", () => {
       expect(steps.join("\n")).not.toMatch(/luno-stg/);
     }
   });
+
+  it("asks a read or draft first prompt, not publish (luno#214)", () => {
+    for (const agent of ["claude", "cursor", "codex"] as const) {
+      const step = nextSteps(agent)[0] ?? "";
+      expect(step).toMatch(/list the form sets|draft one entry/i);
+      expect(step).toMatch(/don't publish|do not publish/i);
+      expect(step).not.toMatch(/publish (this|it|now|to prod)|go live|approve this/i);
+    }
+  });
 });
 
 describe("parseSetupFlags", () => {
@@ -138,6 +147,10 @@ describe("runSetup", () => {
     expect(log).not.toMatch(/Paste your agent API key/i);
     const next = log.split("Next step:")[1] ?? log.split("Next steps:")[1] ?? "";
     expect(next.trim().split("\n").filter((l) => l.trim().startsWith("•"))).toHaveLength(1);
+    expect(next).toMatch(/list the form sets|draft one entry/i);
+    expect(next).not.toMatch(/publish this|go live/i);
+    expect(log).toMatch(/npx @luno-cms\/mcp login/);
+    expect(log).toMatch(/--env stg/);
   });
 
   it("refuses a placeholder key", async () => {
