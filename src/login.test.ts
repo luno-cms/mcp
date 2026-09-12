@@ -32,6 +32,7 @@ describe("parseLoginFlags", () => {
       key: "sk-agent-abc",
       env: undefined,
       yes: false,
+      noBrowser: false,
     });
   });
 
@@ -146,6 +147,52 @@ describe("runLogin", () => {
         output: { write: () => {} },
       }),
     ).rejects.toThrow(/401|unreachable|health/i);
+  });
+
+  it("skips browser and key prompt when an existing key already healthchecks", async () => {
+    const { runLogin } = await import("./login.js");
+    const root = tempProject();
+    seedCommittedMcp(root);
+    bootstrapEnvFiles(root);
+    setKey(root, "prod", "sk-agent-already-good");
+    let browserCalls = 0;
+    let log = "";
+
+    await runLogin({
+      projectRoot: root,
+      yes: true,
+      browserLogin: async () => {
+        browserCalls += 1;
+        return "sk-agent-should-not-run";
+      },
+      healthcheck: async () => ({ ok: true }),
+      output: { write: (s) => { log += s; } },
+    });
+
+    expect(browserCalls).toBe(0);
+    expect(readProjectEnv(root, "prod").key).toBe("sk-agent-already-good");
+    expect(log).toMatch(/prod OK/);
+    expect(log).not.toMatch(/sk-agent-already-good/);
+  });
+
+  it("uses browser login when no key is stored", async () => {
+    const { runLogin } = await import("./login.js");
+    const root = tempProject();
+    seedCommittedMcp(root);
+    let opened = 0;
+
+    await runLogin({
+      projectRoot: root,
+      browserLogin: async () => {
+        opened += 1;
+        return "sk-agent-browser-key";
+      },
+      healthcheck: async () => ({ ok: true }),
+      output: { write: () => {} },
+    });
+
+    expect(opened).toBe(1);
+    expect(readProjectEnv(root, "prod").key).toBe("sk-agent-browser-key");
   });
 
   it("updates an explicit stg key and keeps existing claude config", async () => {

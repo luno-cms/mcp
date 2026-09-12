@@ -28,12 +28,12 @@ Commands:
   (default)              Start MCP server (uses LUNO_API_URL / LUNO_AGENT_KEY)
   run <env>              Start MCP with .agents/luno/<env>.env (dev|stg|prod)
   serve-http [--port N]  Streamable HTTP MCP (Bearer sk-agent-…). Default 127.0.0.1:3333
-  setup [--agent NAME] [--key KEY] [--env prod|stg|dev]
-                         Register skill + MCP, save key, healthcheck (default env: prod).
+  setup [--agent NAME] [--key KEY] [--env prod|stg|dev] [--no-browser]
+                         Register skill + MCP, browser login or --key, healthcheck (default env: prod).
                          Interactive agent list is detected CLIs / apps only.
-  login [--key KEY] [--env prod|stg|dev]
+  login [--key KEY] [--env prod|stg|dev] [--no-browser]
                          Refresh the agent key only. Does not rewrite MCP config.
-                         After clone or 401, prefer this over setup.
+                         After clone or 401, prefer this over setup. Browser login by default.
   env bootstrap          Create .agents/luno/{dev,stg,prod}.env if missing
   env status             Show active env and key status
   env active             Print active env
@@ -46,6 +46,7 @@ Commands:
 
 Examples:
   npx @luno-cms/mcp setup
+  npx @luno-cms/mcp login
   npx @luno-cms/mcp login --key sk-agent-…
   npx @luno-cms/mcp setup --agent claude --yes --key sk-agent-…
   npx @luno-cms/mcp env set-key stg sk-agent-…   # explicit staging
@@ -161,6 +162,7 @@ async function main(): Promise<void> {
       overwrite: flags.overwrite,
       key: flags.key,
       env: flags.env,
+      noBrowser: flags.noBrowser,
     });
     return;
   }
@@ -173,6 +175,7 @@ async function main(): Promise<void> {
       key: flags.key,
       env: flags.env,
       yes: flags.yes,
+      noBrowser: flags.noBrowser,
     });
     return;
   }

@@ -65,13 +65,13 @@ Directory checklist: [docs/DISCOVERY.md](./docs/DISCOVERY.md)
 
 ## Quick start (recommended)
 
-From your **site repository root**, pick **one** AI agent and run setup (Claude Code / Cursor / Codex). The CLI asks for the agent API key (input is hidden). Do not paste the key into the agent chat.
+From your **site repository root**, pick **one** AI agent and run setup (Claude Code / Cursor / Codex). The CLI opens the browser to confirm. Do not paste a key into the agent chat. Use `--key` or `--no-browser` only when you cannot use the browser.
 
 ```bash
 cd my-site
 npx @luno-cms/mcp setup
 # → lists agents found on this machine (or pass --agent claude|cursor|codex)
-# → Agent API key (sk-agent-…, input hidden)
+# → opens the browser to confirm (or --key / --no-browser)
 # → healthcheck against production (https://api.luno.rest/admin)
 ```
 
