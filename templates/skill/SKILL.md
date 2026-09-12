@@ -14,8 +14,8 @@ argument-hint: "[status|prod|stg|dev|help]"
 
 キーを聞かない。チャットに `sk-agent-` を出させない。
 
-- **設定ファイルが無い**（初回）→ `npx -y @luno-cms/mcp setup`
-- **401・期限切れ・プレースホルダ・clone 後にキーだけ無い** → `npx -y @luno-cms/mcp login`（MCP 設定は作り直さない）
+- **設定ファイルが無い**（初回）→ `npx -y @luno-cms/mcp setup`（ブラウザで確認。キーは聞かない）
+- **401・期限切れ・プレースホルダ・clone 後にキーだけ無い** → `npx -y @luno-cms/mcp login`（ブラウザで確認。MCP 設定は作り直さない）
 
 ```bash
 npx -y @luno-cms/mcp login

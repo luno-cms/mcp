@@ -101,6 +101,7 @@ describe("parseSetupFlags", () => {
       overwrite: true,
       key: "sk-agent-abc",
       env: "prod",
+      noBrowser: false,
     });
   });
 
@@ -226,5 +227,50 @@ describe("runSetup", () => {
     });
     expect(hasRealKey(root, "stg")).toBe(true);
     expect(getActiveEnv(root)).toBe("stg");
+  });
+
+  it("skips browser login when an existing key already healthchecks", async () => {
+    const { runSetup } = await import("./setup.js");
+    const { setKey, readProjectEnv } = await import("./env-files.js");
+    const root = tempProject();
+    bootstrapEnvFiles(root);
+    setKey(root, "prod", "sk-agent-already-good");
+    let browserCalls = 0;
+
+    await runSetup({
+      projectRoot: root,
+      agent: "claude",
+      yes: true,
+      browserLogin: async () => {
+        browserCalls += 1;
+        return "sk-agent-should-not-run";
+      },
+      healthcheck: async () => ({ ok: true }),
+      output: { write: () => {} },
+    });
+
+    expect(browserCalls).toBe(0);
+    expect(readProjectEnv(root, "prod").key).toBe("sk-agent-already-good");
+  });
+
+  it("uses browser login when no key is stored", async () => {
+    const { runSetup } = await import("./setup.js");
+    const { readProjectEnv } = await import("./env-files.js");
+    const root = tempProject();
+    let opened = 0;
+
+    await runSetup({
+      projectRoot: root,
+      agent: "claude",
+      browserLogin: async () => {
+        opened += 1;
+        return "sk-agent-browser-key";
+      },
+      healthcheck: async () => ({ ok: true }),
+      output: { write: () => {} },
+    });
+
+    expect(opened).toBe(1);
+    expect(readProjectEnv(root, "prod").key).toBe("sk-agent-browser-key");
   });
 });

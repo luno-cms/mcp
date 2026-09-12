@@ -24,6 +24,7 @@ import {
   noAgentInstallHint,
   selectDetectedAgent,
 } from "./detect-agents.js";
+import { runBrowserLogin } from "./browser-login.js";
 import {
   healthcheckLunoConnection,
   type HealthcheckResult,
@@ -38,7 +39,9 @@ export type SetupOptions = {
   overwrite?: boolean;
   key?: string;
   env?: LunoEnvName;
+  noBrowser?: boolean;
   promptKey?: () => Promise<string>;
+  browserLogin?: () => Promise<string>;
   detectAgents?: () => AgentKind[];
   healthcheck?: (args: { url: string; key: string }) => Promise<HealthcheckResult>;
   output?: SetupWriter;
@@ -50,6 +53,7 @@ export type ParsedSetupFlags = {
   overwrite: boolean;
   key?: string;
   env: LunoEnvName;
+  noBrowser: boolean;
 };
 
 export function parseSetupFlags(argv: string[]): ParsedSetupFlags {
@@ -58,9 +62,11 @@ export function parseSetupFlags(argv: string[]): ParsedSetupFlags {
   let overwrite = true;
   let key: string | undefined;
   let env: LunoEnvName = "prod";
+  let noBrowser = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--yes" || a === "-y") yes = true;
+    else if (a === "--no-browser") noBrowser = true;
     else if (a === "--no-overwrite") overwrite = false;
     else if (a === "--agent") {
       const v = argv[++i];
@@ -90,7 +96,7 @@ export function parseSetupFlags(argv: string[]): ParsedSetupFlags {
       throw new Error(`Unknown setup option: ${a}`);
     }
   }
-  return { agent, yes, overwrite, key, env };
+  return { agent, yes, overwrite, key, env, noBrowser };
 }
 
 async function promptAgent(output: SetupWriter, detected: AgentKind[]): Promise<AgentKind> {
@@ -165,13 +171,21 @@ async function defaultPromptMaskedKey(): Promise<string> {
 
 async function resolveAgentKey(
   opts: SetupOptions,
-  env: LunoEnvName
+  env: LunoEnvName,
+  check: (args: { url: string; key: string }) => Promise<HealthcheckResult>,
 ): Promise<string> {
   if (opts.key !== undefined) return opts.key;
   if (hasRealKey(opts.projectRoot, env)) {
-    return readProjectEnv(opts.projectRoot, env).key;
+    const existing = readProjectEnv(opts.projectRoot, env);
+    const health = await check({ url: existing.url, key: existing.key });
+    if (health.ok) return existing.key;
   }
   if (opts.promptKey) return opts.promptKey();
+  if (opts.browserLogin) return opts.browserLogin();
+  if (!opts.noBrowser && !opts.yes && input.isTTY) {
+    const { url } = readProjectEnv(opts.projectRoot, env);
+    return runBrowserLogin({ apiUrl: url, output: opts.output });
+  }
   if (opts.yes || !input.isTTY) {
     throw new Error("Non-interactive setup requires --key sk-agent-…");
   }
@@ -200,7 +214,11 @@ export async function runSetup(opts: SetupOptions): Promise<void> {
 
   bootstrapEnvFiles(projectRoot);
   ensureGitignore(projectRoot);
-  const key = await resolveAgentKey(opts, env);
+  const check =
+    opts.healthcheck ??
+    (async ({ url: apiUrl, key: agentKey }) =>
+      healthcheckLunoConnection({ apiUrl, agentKey }));
+  const key = await resolveAgentKey(opts, env, check);
   setKey(projectRoot, env, key);
   switchEnv(projectRoot, env);
   const result = writeAgentConfig(projectRoot, agent, {
@@ -208,10 +226,6 @@ export async function runSetup(opts: SetupOptions): Promise<void> {
   });
 
   const { url } = readProjectEnv(projectRoot, env);
-  const check =
-    opts.healthcheck ??
-    (async ({ url: apiUrl, key: agentKey }) =>
-      healthcheckLunoConnection({ apiUrl, agentKey }));
   const health = await check({ url, key });
   if (!health.ok) {
     throw new Error(`${env} unreachable: ${health.message}`);
@@ -221,7 +235,7 @@ export async function runSetup(opts: SetupOptions): Promise<void> {
   output.write(`LUNO setup → ${agentLabel(agent)}\n`);
   output.write(`\nConnected: ${env} OK\n`);
   output.write(`Env file: ${envFilePath(projectRoot, env)}\n`);
-  output.write("(dev / stg: `npx @luno-cms/mcp setup --env stg --key …` when you have access)\n");
+  output.write("(dev / stg: `npx @luno-cms/mcp setup --env stg` when you have access)\n");
   output.write("\nAgent files:\n");
   for (const f of result.files) {
     output.write(`  [${f.action}] ${f.path}\n`);

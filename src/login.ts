@@ -6,12 +6,14 @@ import {
   ensureGitignore,
   envFilePath,
   getActiveEnv,
+  hasRealKey,
   isLunoEnvName,
   readProjectEnv,
   setKey,
   switchEnv,
   type LunoEnvName,
 } from "./env-files.js";
+import { runBrowserLogin } from "./browser-login.js";
 import {
   healthcheckLunoConnection,
   type HealthcheckResult,
@@ -24,7 +26,9 @@ export type LoginOptions = {
   key?: string;
   env?: LunoEnvName;
   yes?: boolean;
+  noBrowser?: boolean;
   promptKey?: () => Promise<string>;
+  browserLogin?: () => Promise<string>;
   healthcheck?: (args: { url: string; key: string }) => Promise<HealthcheckResult>;
   output?: LoginWriter;
 };
@@ -33,6 +37,7 @@ export type ParsedLoginFlags = {
   key?: string;
   env?: LunoEnvName;
   yes: boolean;
+  noBrowser: boolean;
 };
 
 const MCP_CONFIG_PATHS = [
@@ -49,9 +54,11 @@ export function parseLoginFlags(argv: string[]): ParsedLoginFlags {
   let key: string | undefined;
   let env: LunoEnvName | undefined;
   let yes = false;
+  let noBrowser = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--yes" || a === "-y") yes = true;
+    else if (a === "--no-browser") noBrowser = true;
     else if (a === "--key") {
       const v = argv[++i];
       if (!v) throw new Error("--key requires sk-agent-…");
@@ -70,7 +77,7 @@ export function parseLoginFlags(argv: string[]): ParsedLoginFlags {
       throw new Error(`Unknown login option: ${a}`);
     }
   }
-  return { key, env, yes };
+  return { key, env, yes, noBrowser };
 }
 
 function readHiddenLine(): Promise<string> {
@@ -119,9 +126,23 @@ async function defaultPromptMaskedKey(): Promise<string> {
   return readHiddenLine();
 }
 
-async function resolveLoginKey(opts: LoginOptions): Promise<string> {
+async function resolveLoginKey(
+  opts: LoginOptions,
+  env: LunoEnvName,
+  check: (args: { url: string; key: string }) => Promise<HealthcheckResult>,
+): Promise<string> {
   if (opts.key !== undefined) return opts.key;
+  if (hasRealKey(opts.projectRoot, env)) {
+    const existing = readProjectEnv(opts.projectRoot, env);
+    const health = await check({ url: existing.url, key: existing.key });
+    if (health.ok) return existing.key;
+  }
   if (opts.promptKey) return opts.promptKey();
+  if (opts.browserLogin) return opts.browserLogin();
+  if (!opts.noBrowser && !opts.yes && input.isTTY) {
+    const { url } = readProjectEnv(opts.projectRoot, env);
+    return runBrowserLogin({ apiUrl: url, output: opts.output });
+  }
   if (opts.yes || !input.isTTY) {
     throw new Error("Non-interactive login requires --key sk-agent-…");
   }
@@ -138,15 +159,15 @@ export async function runLogin(opts: LoginOptions): Promise<void> {
   const env = opts.env ?? getActiveEnv(projectRoot);
   bootstrapEnvFiles(projectRoot);
   ensureGitignore(projectRoot);
-  const key = await resolveLoginKey(opts);
-  setKey(projectRoot, env, key);
-  switchEnv(projectRoot, env);
-
-  const { url } = readProjectEnv(projectRoot, env);
   const check =
     opts.healthcheck ??
     (async ({ url: apiUrl, key: agentKey }) =>
       healthcheckLunoConnection({ apiUrl, agentKey }));
+  const key = await resolveLoginKey(opts, env, check);
+  setKey(projectRoot, env, key);
+  switchEnv(projectRoot, env);
+
+  const { url } = readProjectEnv(projectRoot, env);
   const health = await check({ url, key });
   if (!health.ok) {
     throw new Error(`${env} unreachable: ${health.message}`);
