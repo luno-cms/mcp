@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { cwd } from "node:process";
-import { isAgentKind, type AgentKind } from "./agent-configs.js";
 import {
   bootstrapEnvFiles,
   getActiveEnv,
@@ -29,7 +28,9 @@ Commands:
   (default)              Start MCP server (uses LUNO_API_URL / LUNO_AGENT_KEY)
   run <env>              Start MCP with .agents/luno/<env>.env (dev|stg|prod)
   serve-http [--port N]  Streamable HTTP MCP (Bearer sk-agent-…). Default 127.0.0.1:3333
-  setup [--agent NAME]   Register skill + MCP for one agent in this project
+  setup [--agent NAME] [--key KEY] [--env prod|stg|dev]
+                         Register skill + MCP, save key, healthcheck (default env: prod).
+                         Interactive agent list is detected CLIs / apps only.
   env bootstrap          Create .agents/luno/{dev,stg,prod}.env if missing
   env status             Show active env and key status
   env active             Print active env
@@ -42,39 +43,10 @@ Commands:
 
 Examples:
   npx @luno-cms/mcp setup
-  npx @luno-cms/mcp setup --agent claude --yes
-  npx @luno-cms/mcp env set-key stg sk-agent-…
-  npx @luno-cms/mcp run stg
+  npx @luno-cms/mcp setup --agent claude --yes --key sk-agent-…
+  npx @luno-cms/mcp env set-key stg sk-agent-…   # explicit staging
+  npx @luno-cms/mcp run prod
 `);
-}
-
-function parseSetupFlags(argv: string[]): {
-  agent?: AgentKind;
-  yes: boolean;
-  overwrite: boolean;
-} {
-  let agent: AgentKind | undefined;
-  let yes = false;
-  let overwrite = true;
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === "--yes" || a === "-y") yes = true;
-    else if (a === "--no-overwrite") overwrite = false;
-    else if (a === "--agent") {
-      const v = argv[++i];
-      if (!v || !isAgentKind(v)) {
-        throw new Error("--agent requires claude|cursor|codex");
-      }
-      agent = v;
-    } else if (a.startsWith("--agent=")) {
-      const v = a.slice("--agent=".length);
-      if (!isAgentKind(v)) throw new Error("--agent requires claude|cursor|codex");
-      agent = v;
-    } else {
-      throw new Error(`Unknown setup option: ${a}`);
-    }
-  }
-  return { agent, yes, overwrite };
 }
 
 async function runEnvCommand(argv: string[], projectRoot: string): Promise<void> {
@@ -176,13 +148,15 @@ async function main(): Promise<void> {
   }
 
   if (cmd === "setup") {
+    const { runSetup, parseSetupFlags } = await import("./setup.js");
     const flags = parseSetupFlags(argv.slice(1));
-    const { runSetup } = await import("./setup.js");
     await runSetup({
       projectRoot,
       agent: flags.agent,
       yes: flags.yes,
       overwrite: flags.overwrite,
+      key: flags.key,
+      env: flags.env,
     });
     return;
   }

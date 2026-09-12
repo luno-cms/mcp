@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   bootstrapEnvFiles,
+  getActiveEnv,
   hasRealKey,
   migrateLegacyCursorEnv,
   parseEnvFile,
@@ -100,6 +101,20 @@ describe("project env lifecycle", () => {
     const root = tempProject();
     bootstrapEnvFiles(root);
     expect(() => switchEnv(root, "prod")).toThrow(/key missing/);
+  });
+
+  it("defaults active env to prod when unset", () => {
+    const root = tempProject();
+    bootstrapEnvFiles(root);
+    expect(getActiveEnv(root)).toBe("prod");
+  });
+
+  it("keeps an explicit stg active file", () => {
+    const root = tempProject();
+    bootstrapEnvFiles(root);
+    setKey(root, "stg", "sk-agent-stg-keep");
+    switchEnv(root, "stg");
+    expect(getActiveEnv(root)).toBe("stg");
   });
 
   it("migrates legacy .cursor/luno.*.env into .agents/luno", () => {

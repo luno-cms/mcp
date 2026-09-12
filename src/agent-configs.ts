@@ -214,26 +214,15 @@ export function nextSteps(agent: AgentKind): string[] {
   switch (agent) {
     case "claude":
       return [
-        "Run: claude",
-        "Approve workspace trust if prompted",
-        "Type: /luno",
-        "Paste your agent API key when asked",
+        "Open Claude Code, approve workspace trust if prompted, then ask: \"What's connected on this LUNO?\"",
       ];
     case "cursor":
       return [
-        "Open this folder in Cursor",
-        "Reload Window if MCP servers do not appear",
-        "In Agent chat, run /luno (or select the luno skill)",
-        "Paste your agent API key when asked",
+        "Open this folder in Cursor, approve MCP / workspace trust if prompted, then ask: \"What's connected on this LUNO?\"",
       ];
     case "codex":
       return [
-        "If needed, register MCP into ~/.codex (commands printed below)",
-        "Verify: codex mcp list  →  expect luno-stg",
-        "Trust this project; start Codex in this folder",
-        "Prefer MCP server luno-stg when that env is active",
-        "Approve the first MCP tool call if Codex prompts",
-        "Invoke the luno skill; paste sk-agent-… when asked",
+        "Start Codex in this folder, approve project trust if prompted, then ask: \"What's connected on this LUNO?\"",
       ];
   }
 }
