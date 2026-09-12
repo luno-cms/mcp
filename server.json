@@ -6,12 +6,12 @@
     "url": "https://github.com/luno-cms/mcp",
     "source": "github"
   },
-  "version": "0.2.46",
+  "version": "0.2.47",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@luno-cms/mcp",
-      "version": "0.2.46",
+      "version": "0.2.47",
       "transport": {
         "type": "stdio"
       },
