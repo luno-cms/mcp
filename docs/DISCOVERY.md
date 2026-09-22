@@ -15,11 +15,12 @@ Quick start CTA: `npx -y @luno-cms/mcp setup`
 
 | Channel | Status | URL / notes |
 | --- | --- | --- |
-| **npm** | Live | [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) — search `luno mcp` |
-| **Official MCP Registry** | Live | [`io.github.luno-cms/mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.luno-cms/mcp) |
-| **GitHub** | Live | [`github.com/luno-cms/mcp`](https://github.com/luno-cms/mcp) + `glama.json` |
-| **Glama** | Live (claimed) | [`glama.ai/mcp/servers/luno-cms/mcp`](https://glama.ai/mcp/servers/luno-cms/mcp) — use `npx` setup, not hosted “Install Server” |
-| **mcpservers.org** | Live | [`mcpservers.org/servers/luno-rest`](https://mcpservers.org/servers/luno-rest) |
+| **npm** | Live (copy stale until publish) | [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) — registry description still “build, operate, and govern” + `npx @luno-cms/mcp setup` as of 2026-09-22. Source on `main` is four-operator + crypto + `npx -y`. **Do not publish from this checklist.** |
+| **Official MCP Registry** | Live | [`io.github.luno-cms/mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.luno-cms/mcp) — `server.json` on `main` updated; registry refresh follows the next tagged publish. |
+| **GitHub** | Live (source of truth) | [`github.com/luno-cms/mcp`](https://github.com/luno-cms/mcp) + `glama.json` — four operators + `npx -y @luno-cms/mcp setup` after #65. |
+| **Glama** | Live (claimed, scrape stale) | [`glama.ai/mcp/servers/luno-cms/mcp`](https://glama.ai/mcp/servers/luno-cms/mcp) — still shows “AI Backend Platform” / `npx @luno-cms/mcp setup`. Needs **Claim / Sync server** after #65. Use `npx -y`, not hosted “Install Server”. |
+| **Smithery** | Listing URL only | [`smithery.ai/server/@luno-cms/mcp`](https://smithery.ai/server/@luno-cms/mcp) — page exists; body is JS-rendered. No admin edit from this repo. |
+| **mcpservers.org** | Live (unverified 2026-09-22) | [`mcpservers.org/servers/luno-rest`](https://mcpservers.org/servers/luno-rest) — Cloudflare challenge blocked a text scrape. Reuse DISCOVERY copy when the form is reachable. |
 | **mcp.so** | Submitted (free review) | [chatmcp/mcpso#3707](https://github.com/chatmcp/mcpso/issues/3707) — queued via GitHub issue (not paid $39) |
 | **Test B baseline** | Pending | `luno-cms/marketing` `docs/phase2-ai-discovery-baseline.md` — re-run after directory mix is stable |
 
