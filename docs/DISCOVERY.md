@@ -18,7 +18,7 @@ Quick start CTA: `npx -y @luno-cms/mcp setup`
 | **npm** | Live (copy stale until publish) | [`@luno-cms/mcp`](https://www.npmjs.com/package/@luno-cms/mcp) — registry description still “build, operate, and govern” + `npx @luno-cms/mcp setup` as of 2026-09-22. Source on `main` is four-operator + crypto + `npx -y`. **Do not publish from this checklist.** |
 | **Official MCP Registry** | Live | [`io.github.luno-cms/mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.luno-cms/mcp) — `server.json` on `main` updated; registry refresh follows the next tagged publish. |
 | **GitHub** | Live (source of truth) | [`github.com/luno-cms/mcp`](https://github.com/luno-cms/mcp) + `glama.json` — four operators + `npx -y @luno-cms/mcp setup` after #65. |
-| **Glama** | Live (claimed, scrape stale) | [`glama.ai/mcp/servers/luno-cms/mcp`](https://glama.ai/mcp/servers/luno-cms/mcp) — still shows “AI Backend Platform” / `npx @luno-cms/mcp setup`. Needs **Claim / Sync server** after #65. Use `npx -y`, not hosted “Install Server”. |
+| **Glama** | Live (claimed + synced 2026-09-22) | [`glama.ai/mcp/servers/luno-cms/mcp`](https://glama.ai/mcp/servers/luno-cms/mcp) — Official + owner check. README now shows four operators + `npx -y @luno-cms/mcp setup`. Glama listing title is still `LUNO — AI Backend Platform` (their title field, not the README H1). Use `npx -y`, not hosted “Install Server”. |
 | **Smithery** | Listing URL only | [`smithery.ai/server/@luno-cms/mcp`](https://smithery.ai/server/@luno-cms/mcp) — page exists; body is JS-rendered. No admin edit from this repo. |
 | **mcpservers.org** | Live (unverified 2026-09-22) | [`mcpservers.org/servers/luno-rest`](https://mcpservers.org/servers/luno-rest) — Cloudflare challenge blocked a text scrape. Reuse DISCOVERY copy when the form is reachable. |
 | **mcp.so** | Submitted (free review) | [chatmcp/mcpso#3707](https://github.com/chatmcp/mcpso/issues/3707) — queued via GitHub issue (not paid $39) |
@@ -62,3 +62,5 @@ pnpm public-audit && pnpm test && pnpm build
 ## Glama ownership
 
 Org repo: maintainers in root `glama.json`. After changes, **Claim ownership** / **Sync server** on the Glama admin page so metadata refreshes.
+
+Claim + Sync applied 2026-09-22. Live README matches `#65`. Re-sync after the next README / `package.json` description change.
