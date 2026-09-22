@@ -1,6 +1,6 @@
 {
   "name": "@luno-cms/mcp",
-  "version": "0.2.50",
+  "version": "0.2.51",
   "type": "module",
   "description": "MCP for LUNO, the AI-era Backend Platform — not the Luno crypto exchange. Agents BUILD/OPERATE (Claude Code, Cursor, Codex). Humans REGISTER/GOVERN. Applications CONSUME. luno.rest · doc.luno.rest · npx -y @luno-cms/mcp setup",
   "keywords": [
