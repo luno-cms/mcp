@@ -2,12 +2,14 @@
 
 Positioning (use consistently on npm, GitHub, Registry, Glama, mcpservers.org, mcp.so):
 
-> **LUNO — AI Backend Platform.** Build, operate, and govern production backends with AI agents.  
-> Not a website builder. MCP connects Claude Code, Cursor, and Codex to schemas, content, forms, auth, storage, and publish.
+> **LUNO — AI-era Backend Platform** (not the Luno crypto exchange, not meetluno.ai).  
+> Agents BUILD / OPERATE via MCP. Humans REGISTER / GOVERN. Applications CONSUME. Everyone works from the same system of record.  
+> Not a website builder. MCP connects Claude Code, Cursor, and Codex to schemas, content, forms, auth, storage, and publish.  
+> Site: https://luno.rest · Docs: https://doc.luno.rest
 
-Quick start CTA: `npx @luno-cms/mcp setup`
+Quick start CTA: `npx -y @luno-cms/mcp setup`
 
-**Disambiguation:** `@luno-cms/mcp` / `io.github.luno-cms/mcp` — not the unrelated cryptocurrency-exchange “Luno” MCP.
+**Disambiguation:** `@luno-cms/mcp` / `io.github.luno-cms/mcp` — not the Luno crypto exchange, not meetluno.ai.
 
 ## Status checklist (#67)
 
@@ -29,8 +31,8 @@ Free review queue: open a GitHub issue on [`chatmcp/mcpso`](https://github.com/c
 | --- | --- |
 | **Status** | Submitted 2026-08-23 — [issue #3707](https://github.com/chatmcp/mcpso/issues/3707) |
 | Repository URL | `https://github.com/luno-cms/mcp` |
-| Name | `LUNO — AI Backend Platform` |
-| Description | MCP server for LUNO: AI agents build, operate, and govern production backends (schemas, content, forms, auth, storage, publish). `npx @luno-cms/mcp setup` for Claude Code, Cursor, Codex. |
+| Name | `LUNO — AI-era Backend Platform` |
+| Description | MCP for LUNO, the AI-era Backend Platform — not the Luno crypto exchange. Agents BUILD/OPERATE (Claude Code, Cursor, Codex). Humans REGISTER/GOVERN. Applications CONSUME. luno.rest · doc.luno.rest · `npx -y @luno-cms/mcp setup`. |
 
 Paid instant path (optional): [mcp.so/submit?type=server](https://mcp.so/submit?type=server) ($39).
 

@@ -1,6 +1,6 @@
-# LUNO — AI Backend Platform
+# LUNO — AI-era Backend Platform
 
-**Build, operate, and govern production backends with AI agents.**
+**Agents BUILD / OPERATE. Humans REGISTER / GOVERN. Applications CONSUME.**
 
 LUNO is a hosted backend platform — not a website builder, not an open-source CMS, and not an MCP server product. MCP is how your agent connects to LUNO. CMS and forms are capabilities; the product category is **AI-era Backend Platform**.
 
@@ -13,12 +13,12 @@ LUNO is a hosted backend platform — not a website builder, not an open-source 
 ### Quick start
 
 ```bash
-npx @luno-cms/mcp setup
+npx -y @luno-cms/mcp setup
 ```
 
 Works with **Claude Code**, **Cursor**, and **Codex**. Issue an agent key in the LUNO Console → **MCP / API / Hook** → **API / MCP**.
 
-> **Glama / MCP directory:** “Install Server” requires a hosted API key and may show *This server cannot be installed*. Use `npx @luno-cms/mcp setup` instead — see [Quick start (recommended)](#quick-start-recommended) below.
+> **Glama / MCP directory:** “Install Server” requires a hosted API key and may show *This server cannot be installed*. Use `npx -y @luno-cms/mcp setup` instead — see [Quick start (recommended)](#quick-start-recommended) below.
 
 ### Production safety by design
 
@@ -69,7 +69,7 @@ From your **site repository root**, pick **one** AI agent and run setup (Claude 
 
 ```bash
 cd my-site
-npx @luno-cms/mcp setup
+npx -y @luno-cms/mcp setup
 # → lists agents found on this machine (or pass --agent claude|cursor|codex)
 # → opens the browser to confirm (or --key / --no-browser)
 # → healthcheck against production (https://api.luno.rest/admin)
